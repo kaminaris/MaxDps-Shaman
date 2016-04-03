@@ -5,6 +5,7 @@ local _LightningBolt = 403;
 local _LavaBurst = 51505;
 local _FlameShock = 8050;
 local _EarthShock = 8042;
+local _Earthquake = 61882;
 local _UnleashFlame = 165462;
 local _LightningShield = 324;
 local _Ascendance = 114050;
@@ -18,6 +19,7 @@ local _FireElementalTotem = 2894;
 -- auras
 local _LavaSurge = 77762;
 local _ElementalFusion = 157174;
+local _EnhancedChainLightning = 157766;
 
 -- talents
 local _isStormElementalTotem = false;
@@ -63,21 +65,20 @@ end
 ----------------------------------------------
 TDDps_Shaman_Elemental = function()
 
-	local lcd, currentSpell, gcd = TD_EndCast();
-	local timeShift = lcd;
-	if gcd > timeShift then
-		timeShift = gcd;
-	end
+	local timeShift, currentSpell, gcd = TD_EndCast();
 
-	local lavaCd, lavaCharges = TD_SpellCharges('Lava Burst');
+	local lavaCd, lavaCharges = TD_SpellCharges(_LavaBurst, timeShift);
+	local eqCd, eqCharges = TD_SpellCharges(_Earthquake, timeShift);
 --	local lavaSurge = TD_Aura(_LavaSurge);
 --	local ascendance = TD_Aura(_Ascendance);
 	local ascendanceCD = TD_SpellAvailable(_Ascendance, timeShift);
 	local elBlast = TD_SpellAvailable(_ElementalBlast, timeShift);
 	local ulFlame = TD_SpellAvailable(_UnleashFlame, timeShift);
 	local fsCD = TD_SpellAvailable(_FlameShock, timeShift);
+	local esCD = TD_SpellAvailable(_EarthShock, timeShift);
 	local fetCD = TD_SpellAvailable(_FireElementalTotem, timeShift);
-	local ls, lsCharges = TD_Aura(_LightningShield);
+	local ls, lsCharges = TD_Aura(_LightningShield, timeShift);
+	local ecl = TD_Aura(_EnhancedChainLightning, timeShift);
 --	local ef, efCharges = TD_Aura(_ElementalFusion, timeShift);
 	local fs = TD_TargetAura(_FlameShock, timeShift);
 	local fs9 = TD_TargetAura(_FlameShock, 15 + timeShift);
@@ -91,11 +92,15 @@ TDDps_Shaman_Elemental = function()
 	TDButton_GlowCooldown(_Ascendance, ascendanceCD);
 	TDButton_GlowCooldown(_FireElementalTotem, fetCD);
 
+	if eqCd and ecl then
+		return _Earthquake;
+	end
+
 	if not fs and fsCD then
 		return _FlameShock;
 	end
 
-	if lsCharges == 20 then
+	if lsCharges == 20 and esCD then
 		return _EarthShock;
 	end
 
@@ -103,7 +108,7 @@ TDDps_Shaman_Elemental = function()
 		return _LavaBurst;
 	end
 
-	if lsCharges >= 15 then
+	if lsCharges >= 15 and esCD then
 		return _EarthShock;
 	end
 
