@@ -1,8 +1,0 @@
-## Title: TDDps_Shaman
-## Version: 1.5
-## Author: Kaminaris
-## Interface: 70000
-## Dependencies: TDDps
-## LoadOnDemand: 1
-
-main.lua

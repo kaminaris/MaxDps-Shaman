@@ -44,59 +44,51 @@ local _isHailstorm = false;
 local _isCrashingStorm = false;
 local _isElementalMastery = false;
 
-----------------------------------------------
--- Pre enable, checking talents
-----------------------------------------------
-TDDps_Shaman_CheckTalents = function()
-	_isAscendance = TD_TalentEnabled('Ascendance');
-	_isHailstorm = TD_TalentEnabled('Hailstorm');
-	_isCrashingStorm = TD_TalentEnabled('Crashing Storm');
-	_isElementalMastery = TD_TalentEnabled('Elemental Mastery');
+MaxDps.Shaman = {};
+
+function MaxDps.Shaman.CheckTalents()
+	_isAscendance = MaxDps:TalentEnabled('Ascendance');
+	_isHailstorm = MaxDps:TalentEnabled('Hailstorm');
+	_isCrashingStorm = MaxDps:TalentEnabled('Crashing Storm');
+	_isElementalMastery = MaxDps:TalentEnabled('Elemental Mastery');
 end
 
-----------------------------------------------
--- Enabling Addon
-----------------------------------------------
-function TDDps_Shaman_EnableAddon(mode)
+function MaxDps:EnableRotationModule(mode)
 	mode = mode or 1;
-	_TD['DPS_Description'] = 'TD Shaman DPS supports: Elemental, Enhancement';
-	_TD['DPS_OnEnable'] = TDDps_Shaman_CheckTalents;
+	MaxDps.Description = 'Shaman Module [Elemental, Enhancement]';
+	MaxDps.ModuleOnEnable = MaxDps.Shaman.CheckTalents;
 	if mode == 1 then
-		_TD['DPS_NextSpell'] = TDDps_Shaman_Elemental;
+		MaxDps.NextSpell = MaxDps.Shaman.Elemental;
 	end;
 	if mode == 2 then
-		_TD['DPS_NextSpell'] = TDDps_Shaman_Enhancement;
+		MaxDps.NextSpell = MaxDps.Shaman.Enhancement;
 	end;
-	TDDps_EnableAddon();
 end
 
-----------------------------------------------
--- Main rotation: Elemental
-----------------------------------------------
-TDDps_Shaman_Elemental = function()
-	local timeShift, currentSpell, gcd = TD_EndCast();
+function MaxDps.Shaman.Elemental()
+	local timeShift, currentSpell, gcd = MaxDps:EndCast();
 
 	local mael = UnitPower('player', SPELL_POWER_MAELSTORM);
 
-	local lavaCd, lavaCharges = TD_SpellCharges(_LavaBurst, timeShift);
-	local eqCd, eqCharges = TD_SpellCharges(_Earthquake, timeShift);
+	local lavaCd, lavaCharges = MaxDps:SpellCharges(_LavaBurst, timeShift);
+	local eqCd, eqCharges = MaxDps:SpellCharges(_Earthquake, timeShift);
 
-	local ascendance = TD_Aura(_Ascendance);
-	local ascendanceCD = TD_SpellAvailable(_Ascendance, timeShift);
-	local emCD = TD_SpellAvailable(_ElementalMastery, timeShift);
+	local ascendance = MaxDps:Aura(_Ascendance);
+	local ascendanceCD = MaxDps:SpellAvailable(_Ascendance, timeShift);
+	local emCD = MaxDps:SpellAvailable(_ElementalMastery, timeShift);
 
-	local fetCD = TD_SpellAvailable(_FireElemental, timeShift);
-	local stormk = TD_SpellAvailable(_Stormkeeper, timeShift);
+	local fetCD = MaxDps:SpellAvailable(_FireElemental, timeShift);
+	local stormk = MaxDps:SpellAvailable(_Stormkeeper, timeShift);
 
-	local fs = TD_TargetAura(_FlameShock, 4 + timeShift);
+	local fs = MaxDps:TargetAura(_FlameShock, 4 + timeShift);
 
 	if currentSpell == 'Lava Burst' and lavaCharges > 0 then
 		lavaCharges = lavaCharges - 1;
 	end
 
-	TDButton_GlowCooldown(_Ascendance, _isAscendance and ascendanceCD);
-	TDButton_GlowCooldown(_ElementalMastery, _isElementalMastery and emCD);
-	TDButton_GlowCooldown(_FireElemental, fetCD);
+	MaxDps:GlowCooldown(_Ascendance, _isAscendance and ascendanceCD);
+	MaxDps:GlowCooldown(_ElementalMastery, _isElementalMastery and emCD);
+	MaxDps:GlowCooldown(_FireElemental, fetCD);
 
 	if not fs then
 		return _FlameShock;
@@ -110,35 +102,32 @@ TDDps_Shaman_Elemental = function()
 		return _LavaBurst;
 	end
 
-	if not ascendance and stormk then
+	if not ascendance and stormk and currentSpell ~= 'Stormkeeper' then
 		return _Stormkeeper;
 	end
 
 	return _LightningBolt;
 end
 
-----------------------------------------------
--- Main rotation: Enhancement
-----------------------------------------------
-TDDps_Shaman_Enhancement = function()
-	local timeShift, currentSpell, gcd = TD_EndCast();
+function MaxDps.Shaman.Enhancement()
+	local timeShift, currentSpell, gcd = MaxDps:EndCast();
 
 	local mael = UnitPower('player', SPELL_POWER_MAELSTORM);
 
-	local bfCd, bfCharges = TD_SpellCharges(_Boulderfist, timeShift);
-	local ssCd = TD_SpellAvailable(_Stormstrike, timeShift);
-	local fs = TD_SpellAvailable(_FeralSpirit, timeShift);
-	local dw = TD_SpellAvailable(_DoomWinds, timeShift);
-	local cl = TD_SpellAvailable(_CrashLightning, timeShift);
-	local ftCd = TD_SpellAvailable(_Flametongue, timeShift);
+	local bfCd, bfCharges = MaxDps:SpellCharges(_Boulderfist, timeShift);
+	local ssCd = MaxDps:SpellAvailable(_Stormstrike, timeShift);
+	local fs = MaxDps:SpellAvailable(_FeralSpirit, timeShift);
+	local dw = MaxDps:SpellAvailable(_DoomWinds, timeShift);
+	local cl = MaxDps:SpellAvailable(_CrashLightning, timeShift);
+	local ftCd = MaxDps:SpellAvailable(_Flametongue, timeShift);
 
-	local bf = TD_Aura(_Boulderfist, timeShift + 2);
-	local ls = TD_Aura(_Landslide, timeShift + 2);
-	local fb = TD_Aura(_Frostbrand, timeShift + 4);
-	local ft = TD_Aura(_Flametongue, timeShift + 4);
+	local bf = MaxDps:Aura(_Boulderfist, timeShift + 2);
+	local ls = MaxDps:Aura(_Landslide, timeShift + 2);
+	local fb = MaxDps:Aura(_Frostbrand, timeShift + 4);
+	local ft = MaxDps:Aura(_Flametongue, timeShift + 4);
 
-	TDButton_GlowCooldown(_FeralSpirit, fs);
-	TDButton_GlowCooldown(_DoomWinds, dw);
+	MaxDps:GlowCooldown(_FeralSpirit, fs);
+	MaxDps:GlowCooldown(_DoomWinds, dw);
 
 	if (not bf or not ls) and bfCd then
 		return _Boulderfist;
@@ -178,10 +167,8 @@ TDDps_Shaman_Enhancement = function()
 
 	return _LightningBoltEnh;
 end
-----------------------------------------------
--- Fire totem name and expiration
-----------------------------------------------
-function TDDps_Shaman_FireTotem()
+
+function MaxDps.Shaman.FireTotem()
 	local have, totemName, startTime, duration = GetTotemInfo(1);
 	if not have then
 		return '', 0;
