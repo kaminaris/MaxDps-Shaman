@@ -13,6 +13,7 @@ local _ElementalBlast = 117014;
 local _FireElemental = 198067;
 local _Stormkeeper = 205495;
 local _ElementalMastery = 16166;
+local _TotemMastery = 210643;
 
 -- enh
 local _Boulderfist = 201897;
@@ -43,14 +44,17 @@ local _isAscendance = false;
 local _isHailstorm = false;
 local _isCrashingStorm = false;
 local _isElementalMastery = false;
+local _isTotemMastery = false;
 
 MaxDps.Shaman = {};
 
 function MaxDps.Shaman.CheckTalents()
-	_isAscendance = MaxDps:TalentEnabled('Ascendance');
-	_isHailstorm = MaxDps:TalentEnabled('Hailstorm');
-	_isCrashingStorm = MaxDps:TalentEnabled('Crashing Storm');
-	_isElementalMastery = MaxDps:TalentEnabled('Elemental Mastery');
+	MaxDps:CheckTalents();
+	_isAscendance = MaxDps:HasTalent(_Ascendance);
+	_isHailstorm = MaxDps:HasTalent(_Hailstorm);
+	_isCrashingStorm = MaxDps:HasTalent(_CrashingStorm);
+	_isElementalMastery = MaxDps:HasTalent(_ElementalMastery);
+	_isTotemMastery = MaxDps:HasTalent(_TotemMastery);
 end
 
 function MaxDps:EnableRotationModule(mode)
@@ -82,8 +86,15 @@ function MaxDps.Shaman.Elemental()
 
 	local fs = MaxDps:TargetAura(_FlameShock, 4 + timeShift);
 
-	if currentSpell == 'Lava Burst' and lavaCharges > 0 then
-		lavaCharges = lavaCharges - 1;
+	if MaxDps:SameSpell(currentSpell, _LavaBurst) then
+		mael = mael + 12;
+		if lavaCharges > 0 then
+			lavaCharges = lavaCharges - 1;
+		end
+	end
+
+	if MaxDps:SameSpell(currentSpell, _LightningBolt) then
+		mael = mael + 8;
 	end
 
 	MaxDps:GlowCooldown(_Ascendance, _isAscendance and ascendanceCD);
@@ -94,7 +105,7 @@ function MaxDps.Shaman.Elemental()
 		return _FlameShock;
 	end
 
-	if mael > 90 then
+	if mael > 85 then
 		return _EarthShock;
 	end
 
@@ -102,8 +113,13 @@ function MaxDps.Shaman.Elemental()
 		return _LavaBurst;
 	end
 
-	if not ascendance and stormk and currentSpell ~= 'Stormkeeper' then
+	if not ascendance and stormk and not MaxDps:SameSpell(currentSpell, _Stormkeeper) then
 		return _Stormkeeper;
+	end
+
+	local totemMastery, tmExp = MaxDps.Shaman.TotemMastery();
+	if _isTotemMastery and tmExp < 10 then
+		return _TotemMastery;
 	end
 
 	return _LightningBolt;
@@ -168,7 +184,7 @@ function MaxDps.Shaman.Enhancement()
 	return _LightningBoltEnh;
 end
 
-function MaxDps.Shaman.FireTotem()
+function MaxDps.Shaman.Totem()
 	local have, totemName, startTime, duration = GetTotemInfo(1);
 	if not have then
 		return '', 0;
@@ -177,3 +193,14 @@ function MaxDps.Shaman.FireTotem()
 	return totemName, expiration;
 end
 
+function MaxDps.Shaman.TotemMastery()
+	local tmName = GetSpellInfo(_TotemMastery);
+
+	for i = 1, 4 do
+		local haveTotem, totemName, startTime, duration = GetTotemInfo(i);
+		if haveTotem and totemName == tmName then
+			return true, startTime + duration - GetTime();
+		end
+	end
+	return false, 0;
+end
