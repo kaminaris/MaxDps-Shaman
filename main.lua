@@ -44,6 +44,9 @@ local _FeralLunge = 196884;
 local _WindRushTotem = 192077;
 local _Rainfall = 215864;
 local _Tempest = 192234;
+local _EarthenSpike = 188089;
+local _Windstrike = 115356;
+local _GatheringStorms = 198300;
 
 -- totems
 local _SearingTotem = 3599;
@@ -54,28 +57,11 @@ local _FireElementalTotem = 2894;
 local _LavaSurge = 77762;
 
 -- talents
-local _isAscendance = false;
-local _isHailstorm = false;
-local _isCrashingStorm = false;
-local _isElementalMastery = false;
-local _isTotemMastery = false;
-local _isElementalBlast = false;
-local _isIcefury = false;
-local _isBoulderfist = false;
-local talents = {};
 
 MaxDps.Shaman = {};
 
 function MaxDps.Shaman.CheckTalents()
 	MaxDps:CheckTalents();
-	talents = MaxDps.PlayerTalents;
-	_isAscendance = MaxDps:HasTalent(_Ascendance);
-	_isHailstorm = MaxDps:HasTalent(_Hailstorm);
-	_isCrashingStorm = MaxDps:HasTalent(_CrashingStorm);
-	_isElementalMastery = MaxDps:HasTalent(_ElementalMastery);
-	_isElementalBlast = MaxDps:HasTalent(_ElementalBlast);
-	_isIcefury = MaxDps:HasTalent(_Icefury);
-	_isTotemMastery = MaxDps:HasTalent(_TotemMastery);
 end
 
 function MaxDps:EnableRotationModule(mode)
@@ -93,22 +79,17 @@ function MaxDps:EnableRotationModule(mode)
 	end;
 end
 
-function MaxDps.Shaman.Elemental()
-	local timeShift, currentSpell, gcd = MaxDps:EndCast();
+function MaxDps.Shaman.Elemental(_, timeShift, currentSpell, gcd, talents)
 
 	local mael = UnitPower('player', SPELL_POWER_MAELSTORM);
-
 	local lavaCd, lavaCharges = MaxDps:SpellCharges(_LavaBurst, timeShift);
 	local eqCd, eqCharges = MaxDps:SpellCharges(_Earthquake, timeShift);
-
 	local ascendance = MaxDps:Aura(_Ascendance, timeShift);
 	local ef = MaxDps:Aura(_ElementalFocus, timeShift);
 	local ascendanceCD = MaxDps:SpellAvailable(_Ascendance, timeShift);
 	local emCD = MaxDps:SpellAvailable(_ElementalMastery, timeShift);
-
 	local fetCD = MaxDps:SpellAvailable(_FireElemental, timeShift);
 	local stormk = MaxDps:SpellAvailable(_Stormkeeper, timeShift);
-
 	local fs = MaxDps:TargetAura(_FlameShock, 4 + timeShift);
 	local fs9 = MaxDps:TargetAura(_FlameShock, 9 + timeShift);
 
@@ -123,24 +104,29 @@ function MaxDps.Shaman.Elemental()
 		mael = mael + 8;
 	end
 
-	MaxDps:GlowCooldown(_Ascendance, _isAscendance and ascendanceCD);
-	MaxDps:GlowCooldown(_ElementalMastery, _isElementalMastery and emCD);
+	MaxDps:GlowCooldown(_Ascendance, talents[_Ascendance] and ascendanceCD);
+	MaxDps:GlowCooldown(_ElementalMastery, talents[_ElementalMastery] and emCD);
 	MaxDps:GlowCooldown(_FireElemental, fetCD);
 
 	if not fs or (not fs9 and mael >= 20 and ef) then
 		return _FlameShock;
 	end
 
-	if _isElementalBlast and MaxDps:SpellAvailable(_ElementalBlast, timeShift) and
+	local totemMastery, tmExp = MaxDps.Shaman.TotemMastery();
+	if talents[_TotemMastery] and tmExp < 10 then
+		return _TotemMastery;
+	end
+
+	if talents[_ElementalBlast] and MaxDps:SpellAvailable(_ElementalBlast, timeShift) and
 			not MaxDps:SameSpell(currentSpell, _ElementalBlast) then
 		return _ElementalBlast;
 	end
 
-	if mael >= 92 then
+	if mael >= 117 then
 		return _EarthShock;
 	end
 
-	if _isIcefury and MaxDps:SpellAvailable(_Icefury, timeShift) and mael < 76 then
+	if talents[_Icefury] and MaxDps:SpellAvailable(_Icefury, timeShift) and mael < 101 then
 		return _Icefury;
 	end
 
@@ -148,7 +134,7 @@ function MaxDps.Shaman.Elemental()
 		return _LavaBurst;
 	end
 
-	if _isIcefury and MaxDps:Aura(_Icefury, timeShift) and mael >= 20 then
+	if talents[_Icefury] and MaxDps:Aura(_Icefury, timeShift) and mael >= 20 then
 		return _FrostShock;
 	end
 
@@ -160,32 +146,33 @@ function MaxDps.Shaman.Elemental()
 		return _Stormkeeper;
 	end
 
-	local totemMastery, tmExp = MaxDps.Shaman.TotemMastery();
-	if _isTotemMastery and tmExp < 10 then
-		return _TotemMastery;
-	end
-
 	return _LightningBolt;
 end
 
-function MaxDps.Shaman.Enhancement()
-	local timeShift, currentSpell, gcd = MaxDps:EndCast();
+function MaxDps.Shaman.Enhancement(_, timeShift, currentSpell, gcd, talents)
 
 	local mael = UnitPower('player', SPELL_POWER_MAELSTORM);
-
 	local rockbiter = _Rockbiter;
 	if talents[_Boulderfist] then
 		rockbiter = _Boulderfist;
 	end
 
 	local rockbCd, rockbCharges = MaxDps:SpellCharges(rockbiter, timeShift);
-
-
-
 	local rockb = MaxDps:Aura(_Boulderfist, timeShift + 2);
+	local asc = MaxDps:Aura(_Ascendance, timeShift);
 
-	MaxDps:GlowCooldown(_FeralSpirit, MaxDps:SpellAvailable(_FeralSpirit, timeShift));
+	local stormstrike = _Stormstrike;
+	if asc then
+		stormstrike = _Windstrike;
+	end
+
+	local fs, fsCd = MaxDps:SpellAvailable(_FeralSpirit, timeShift);
+
+	MaxDps:GlowCooldown(_FeralSpirit, fs);
+	MaxDps:GlowCooldown(_CrashLightning, fsCd > 110 and not MaxDps:Aura(_GatheringStorms, timeShift));
 	MaxDps:GlowCooldown(_DoomWinds, MaxDps:SpellAvailable(_DoomWinds, timeShift));
+	MaxDps:GlowCooldown(_Ascendance, talents[_Ascendance] and MaxDps:SpellAvailable(_Ascendance, timeShift));
+	MaxDps:GlowCooldown(_Windsong, talents[_Windsong] and MaxDps:SpellAvailable(_Windsong, timeShift));
 
 	-- 1. Cast Rockbiter to generate Maelstrom and maintain Landslide
 	if not MaxDps:Aura(_Landslide, timeShift + 2) and rockbCd then
@@ -197,62 +184,68 @@ function MaxDps.Shaman.Enhancement()
 		return _FuryofAir;
 	end
 
-	if _isHailstorm and not MaxDps:Aura(_Frostbrand, timeShift + 4) then
-		return _Frostbrand;
-	end
-
-	-- 3. Maintain the Flametongue buff.
+	-- 3. Cast Flametongue if the buff is not active.
 	local ftCd = MaxDps:SpellAvailable(_Flametongue, timeShift);
 	if not MaxDps:Aura(_Flametongue, timeShift + 4) and ftCd then
 		return _Flametongue;
 	end
 
-	-- 4. Cast Lightning Bolt if above 50 Maelstrom with Overcharge.
-	if talents[_Overcharge] and MaxDps:SpellAvailable(_LightningBoltEnh, timeShift) and mael > 50 then
-		return _LightningBoltEnh;
+	-- 4. Cast Earthen Spike.
+	if talents[_EarthenSpike] and MaxDps:SpellAvailable(_EarthenSpike, timeShift) then
+		return _EarthenSpike;
 	end
 
-	-- 5. Cast Stormstrike with Stormbringer active.
-	if MaxDps:Aura(_Stormbringer, timeShift) and mael >= 20 then
-		return _Stormstrike;
+	-- 5. Cast Windstrike with or without Stormbringer active.
+	if talents[_Ascendance] and asc and MaxDps:SpellAvailable(_Windstrike, timeShift) then
+		return _Windstrike;
 	end
 
-	-- 6. Cast Windsong
+	-- 6. Cast Frostbrand to maintain the Hailstorm buff.
+	if talents[_Hailstorm] and not MaxDps:Aura(_Frostbrand, timeShift + 4) then
+		return _Frostbrand;
+	end
+
+	-- 7. Cast Windsong.
 	if talents[_Windsong] and MaxDps:SpellAvailable(_Windsong, timeShift) then
 		return _Windsong;
 	end
 
-	-- 7. Cast Lava Lash with Hot Hand procs.
+	-- 8. Cast Stormstrike with Stormbringer active.
+	if MaxDps:Aura(_Stormbringer, timeShift) and mael >= 20 then
+		return stormstrike;
+	end
+
+	-- 9. Cast Lightning Bolt if above 50 Maelstrom with Overcharge.
+	if talents[_Overcharge] and MaxDps:SpellAvailable(_LightningBoltEnh, timeShift) and mael > 50 then
+		return _LightningBoltEnh;
+	end
+
+	-- 10. Cast Lava Lash with Hot Hand procs.
 	if talents[_HotHand] and MaxDps:Aura(_HotHand, timeShift) then
 		return _LavaLash;
 	end
 
-	-- 8. Cast Stormstrike on cooldown.
-	if MaxDps:SpellAvailable(_Stormstrike, timeShift) and mael >= 40 then
-		return _Stormstrike;
+	-- 11. Cast Stormstrike.
+	if MaxDps:SpellAvailable(_Stormstrike, timeShift) and mael >= 40  then
+		return stormstrike;
 	end
 
-	if talents[_CrashingStorm] and MaxDps:SpellAvailable(_CrashLightning, timeShift) then
-		return _CrashLightning;
-	end
-
-	if mael < 120 and rockbCharges >= 1 then
-		return rockbiter;
-	end
-
-	if mael > 120 then
-		return _LavaLash;
-	end
-
+	-- 12. Cast Rockbiter.
 	if rockbCharges >= 1 then
 		return rockbiter;
 	end
 
-	if ftCd then
-		return _Flametongue;
+	-- 13.
+	if talents[_CrashingStorm] and MaxDps:SpellAvailable(_CrashLightning, timeShift) then
+		return _CrashLightning;
 	end
 
-	return _LightningBoltEnh;
+	-- 14. Cast Lava Lash if you have more than 80 Maelstrom.
+	if mael > 80 then
+		return _LavaLash;
+	end
+
+	return nil;
 end
 
 function MaxDps.Shaman.Restoration()
