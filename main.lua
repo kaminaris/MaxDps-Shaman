@@ -130,6 +130,7 @@ function Shaman:Elemental()
 	local fd = MaxDps.FrameData;
 	local cooldown, buff, debuff, talents, azerite, currentSpell = fd.cooldown, fd.buff, fd.debuff, fd.talents, fd.azerite, fd.currentSpell;
 
+	local spellHistory = fd.spellHistory;
 	local pet = UnitExists('pet');
 	local maelstrom = UnitPower('player', Enum.PowerType.Maelstrom);
 	local targets = MaxDps:SmartAoe();
@@ -161,7 +162,8 @@ function Shaman:Elemental()
 	MaxDps:GlowCooldown(EL.EarthElemental, not pet and cooldown[EL.EarthElemental].ready);
 
 	-- totem_mastery,if=talent.totem_mastery.enabled&buff.resonance_totem.remains<2;
-	if talents[EL.TotemMastery] and Shaman:TotemMastery(EL.TotemMastery) < 5 then
+	local tmRemains = Shaman:TotemMastery(EL.TotemMastery);
+	if talents[EL.TotemMastery] and tmRemains < 5 and spellHistory[1] ~= EL.TotemMastery then
 		return EL.TotemMastery;
 	end
 
@@ -310,8 +312,9 @@ function Shaman:ElementalSingleTarget()
 	end
 
 	-- totem_mastery,if=talent.totem_mastery.enabled&(buff.resonance_totem.remains<6|(buff.resonance_totem.remains<(buff.ascendance.duration+cooldown.ascendance.remains)&cooldown.ascendance.remains<15));
+	local tmRemains = Shaman:TotemMastery(EL.TotemMastery);
 	if talents[EL.TotemMastery] and
-		(buff[EL.ResonanceTotem].remains < 6 or (buff[EL.ResonanceTotem].remains < (buff[EL.Ascendance].duration + cooldown[EL.Ascendance].remains) and cooldown[EL.Ascendance].remains < 15))
+		(tmRemains < 6 or (tmRemains < (buff[EL.Ascendance].duration + cooldown[EL.Ascendance].remains) and cooldown[EL.Ascendance].remains < 15))
 	then
 		return EL.TotemMastery;
 	end
@@ -517,18 +520,13 @@ end
 function Shaman:TotemMastery(totem)
 	local tmName = GetSpellInfo(totem);
 
-	local i = 1;
-	while true do
+	for i = 1, 4 do
 		local haveTotem, totemName, startTime, duration = GetTotemInfo(i);
-		if not haveTotem then
-			return 0;
-		end
 
 		if haveTotem and totemName == tmName then
 			return startTime + duration - GetTime();
 		end
-
-		i = i + 1;
 	end
+
 	return 0;
 end
