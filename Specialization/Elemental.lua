@@ -125,7 +125,7 @@ function Shaman:ElementalAoe()
 	local chainLightning = MaxDps:FindSpell(EL.ChainLightning) and EL.ChainLightning or EL.LavaBeam;
 
 	-- stormkeeper,if=talent.stormkeeper.enabled;
-	if cooldown[EL.Stormkeeper].ready and currentSpell ~= EL.Stormkeeper and (talents[EL.Stormkeeper]) then
+	if cooldown[EL.Stormkeeper].ready and currentSpell ~= EL.Stormkeeper and talents[EL.Stormkeeper] then
 		return EL.Stormkeeper;
 	end
 
@@ -151,7 +151,7 @@ function Shaman:ElementalAoe()
 	end
 
 	-- chain_lightning,if=buff.stormkeeper.remains<3*gcd*buff.stormkeeper.stack;
-	if currentSpell ~= EL.ChainLightning and buff[EL.Stormkeeper].remains < 3 * gcd * buff[EL.Stormkeeper].count then
+	if buff[EL.Stormkeeper].remains < 3 * gcd * buff[EL.Stormkeeper].count then
 		return EL.ChainLightning;
 	end
 

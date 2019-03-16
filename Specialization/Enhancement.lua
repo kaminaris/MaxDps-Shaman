@@ -227,8 +227,9 @@ function Shaman:EnhancementCds()
 	MaxDps:GlowCooldown(EH.FeralSpirit, cooldown[EH.FeralSpirit].ready);
 
 	-- ascendance,if=cooldown.strike.remains>0;
+	-- @TODO: wtf is strike?
 	if talents[EH.Ascendance] then
-		MaxDps:GlowCooldown(EH.FeralSpirit, cooldown[EH.Ascendance].ready and cooldown[EH.Strike].remains > 0);
+		MaxDps:GlowCooldown(EH.Ascendance, cooldown[EH.Ascendance].ready);
 	end
 
 	-- earth_elemental;
