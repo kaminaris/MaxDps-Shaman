@@ -513,7 +513,7 @@ function Shaman:EnhancementPriority()
 	end
 
 	-- totem_mastery,if=buff.resonance_totem.remains<=2*gcd;
-	if buff[EH.ResonanceTotem].remains <= 2 * gcd then
+	if talents[EH.TotemMastery] and buff[EH.ResonanceTotem].remains <= 2 * gcd then
 		return EH.TotemMastery;
 	end
 
