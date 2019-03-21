@@ -11,39 +11,40 @@ local Maelstrom = Enum.PowerType.Maelstrom;
 local Shaman = addonTable.Shaman;
 
 local EL = {
-	TotemMastery        = 210643,
-	FireElemental       = 198067,
-	ElementalBlast      = 117014,
-	Bloodlust           = 2825,
-	WindShear           = 57994,
-	StormElemental      = 192249,
-	EarthElemental      = 198103,
-	Stormkeeper         = 191634,
-	Ascendance          = 114050,
-	LiquidMagmaTotem    = 192222,
-	FlameShock          = 188389,
-	Earthquake          = 61882,
-	LavaBurst           = 51505,
-	LavaSurge           = 77756,
-	LavaSurge2          = 77762,
-	ChainLightning      = 188443,
-	FrostShock          = 196840,
-	MasterOfTheElements = 16166,
-	PrimalElementalist  = 117013,
-	CallTheThunder  	= 260897,
-	SurgeOfPower        = 262303,
-	SurgeOfPowerAura	= 285514,
-	ExposedElements     = 260694,
-	EchoOfTheElements   = 108283,
-	LightningBolt       = 188196,
-	EarthShock          = 8042,
-	Icefury             = 210714,
+	TotemMastery            = 210643,
+	FireElemental           = 198067,
+	ElementalBlast          = 117014,
+	Bloodlust               = 2825,
+	WindShear               = 57994,
+	StormElemental          = 192249,
+	EarthElemental          = 198103,
+	Stormkeeper             = 191634,
+	Ascendance              = 114050,
+	LiquidMagmaTotem        = 192222,
+	FlameShock              = 188389,
+	Earthquake              = 61882,
+	LavaBurst               = 51505,
+	LavaSurge               = 77756,
+	LavaSurge2              = 77762,
+	ChainLightning          = 188443,
+	FrostShock              = 196840,
+	MasterOfTheElements     = 16166,
+	MasterOfTheElementsAura = 260734,
+	PrimalElementalist      = 117013,
+	CallTheThunder          = 260897,
+	SurgeOfPower            = 262303,
+	SurgeOfPowerAura        = 285514,
+	ExposedElements         = 260694,
+	EchoOfTheElements       = 108283,
+	LightningBolt           = 188196,
+	EarthShock              = 8042,
+	Icefury                 = 210714,
 
-	ResonanceTotem      = 202192,
-	LavaBeam            = 114074,
-	WindGust            = 263806,
+	ResonanceTotem          = 202192,
+	LavaBeam                = 114074,
+	WindGust                = 263806,
 
-	IgneousPotential    = 279829,
+	IgneousPotential        = 279829,
 };
 
 setmetatable(EL, Shaman.spellMeta);
@@ -57,6 +58,26 @@ function Shaman:Elemental()
 	local targets = MaxDps:SmartAoe();
 	local currentSpell = fd.currentSpell;
 	local moving = GetUnitSpeed('player') > 0;
+	local maelstrom = UnitPower('player', Maelstrom);
+
+	local buffMasterOfElements = buff[EL.MasterOfTheElementsAura].up;
+
+	if currentSpell == EL.LavaBurst then
+		maelstrom = maelstrom + 10;
+		buffMasterOfElements = true;
+	elseif currentSpell == EL.LightningBolt then
+		maelstrom = maelstrom + 8;
+		buffMasterOfElements = false;
+	elseif currentSpell == EL.Icefury then
+		maelstrom = maelstrom + 15;
+		buffMasterOfElements = false;
+	elseif currentSpell == EL.ChainLightning or currentSpell == EL.LavaBeam then
+		maelstrom = maelstrom + 4 * (targets - 1);
+		buffMasterOfElements = false;
+	end
+
+	fd.buffMasterOfElements = buffMasterOfElements;
+	fd.maelstrom = maelstrom;
 
 	local tmRemains = Shaman:TotemMastery(EL.TotemMastery);
 	local hasTotemMastery = tmRemains > 5 and buff[EL.ResonanceTotem].up;
@@ -120,8 +141,9 @@ function Shaman:ElementalAoe()
 	local canLavaBurst = fd.canLavaBurst;
 	local targets = fd.targets;
 	local gcd = fd.gcd;
-	local maelstrom = UnitPower('player', Maelstrom);
+	local maelstrom = fd.maelstrom;
 	local moving = fd.moving;
+	local buffMasterOfElements = fd.buffMasterOfElements;
 	local chainLightning = MaxDps:FindSpell(EL.ChainLightning) and EL.ChainLightning or EL.LavaBeam;
 
 	-- stormkeeper,if=talent.stormkeeper.enabled;
@@ -144,7 +166,7 @@ function Shaman:ElementalAoe()
 		not talents[EL.MasterOfTheElements] or
 		buff[EL.Stormkeeper].up or
 		maelstrom >= (100 - 4 * targets) or
-		buff[EL.MasterOfTheElements].up or
+		buffMasterOfElements or
 		targets > 3
 	) then
 		return EL.Earthquake;
@@ -231,7 +253,8 @@ function Shaman:ElementalSingleTarget()
 	local hasTotemMastery = fd.hasTotemMastery;
 	local canLavaBurst = fd.canLavaBurst;
 	local gcd = fd.gcd;
-	local maelstrom = UnitPower('player', Maelstrom);
+	local maelstrom = fd.maelstrom;
+	local buffMasterOfElements = fd.buffMasterOfElements;
 
 	-- flame_shock,if=(!ticking|talent.storm_elemental.enabled&cooldown.storm_elemental.remains<2*gcd|dot.flame_shock.remains<=gcd|talent.ascendance.enabled&dot.flame_shock.remains<(cooldown.ascendance.remains+buff.ascendance.duration)&cooldown.ascendance.remains<4&(!talent.storm_elemental.enabled|talent.storm_elemental.enabled&cooldown.storm_elemental.remains<120))&(buff.wind_gust.stack<14|azerite.igneous_potential.rank>=2|buff.lava_surge.up|!buff.bloodlust.up)&!buff.surge_of_power.up;
 	if cooldown[EL.FlameShock].ready and (
@@ -255,7 +278,7 @@ function Shaman:ElementalSingleTarget()
 	-- elemental_blast,if=talent.elemental_blast.enabled&(talent.master_of_the_elements.enabled&buff.master_of_the_elements.up&maelstrom<60|!talent.master_of_the_elements.enabled)&(!(cooldown.storm_elemental.remains>120&talent.storm_elemental.enabled)|azerite.natural_harmony.rank=3&buff.wind_gust.stack<14);
 	if talents[EL.ElementalBlast] and cooldown[EL.ElementalBlast].ready and currentSpell ~= EL.ElementalBlast and
 		(
-			talents[EL.MasterOfTheElements] and buff[EL.MasterOfTheElements].up and maelstrom < 60 or
+			talents[EL.MasterOfTheElements] and buffMasterOfElements and maelstrom < 60 or
 			not talents[EL.MasterOfTheElements]
 		) and (
 			not (cooldown[EL.StormElemental].remains > 120 and talents[EL.StormElemental]) or
@@ -278,10 +301,10 @@ function Shaman:ElementalSingleTarget()
 	end
 
 	-- lightning_bolt,if=buff.stormkeeper.up&spell_targets.chain_lightning<2&(buff.master_of_the_elements.up&!talent.surge_of_power.enabled|buff.surge_of_power.up);
-	if currentSpell ~= EL.LightningBolt and (
+	if currentSpell ~= EL.LightningBolt and
 		buff[EL.Stormkeeper].up and targets < 2 and
-			(buff[EL.MasterOfTheElements].up and not talents[EL.SurgeOfPower] or buff[EL.SurgeOfPowerAura].up)
-	) then
+			(buffMasterOfElements and not talents[EL.SurgeOfPower] or buff[EL.SurgeOfPowerAura].up)
+	then
 		return EL.LightningBolt;
 	end
 
@@ -293,7 +316,7 @@ function Shaman:ElementalSingleTarget()
 			cooldown[EL.StormElemental].remains > 120
 		) and (
 			not talents[EL.MasterOfTheElements] or
-			buff[EL.MasterOfTheElements].up or maelstrom >= 92
+				buffMasterOfElements or maelstrom >= 92
 		)
 	) then
 		return EL.Earthquake;
@@ -303,7 +326,7 @@ function Shaman:ElementalSingleTarget()
 	if maelstrom >= 60 and (
 		not buff[EL.SurgeOfPowerAura].up and
 		talents[EL.MasterOfTheElements] and (
-			buff[EL.MasterOfTheElements].up or
+			buffMasterOfElements or
 			cooldown[EL.LavaBurst].remains > 0 and maelstrom >= 92 + 30 * (talents[EL.CallTheThunder] and 1 or 0) or
 			buff[EL.Stormkeeper].up and cooldown[EL.LavaBurst].remains <= gcd
 		)
@@ -343,7 +366,7 @@ function Shaman:ElementalSingleTarget()
 	end
 
 	-- frost_shock,if=talent.icefury.enabled&talent.master_of_the_elements.enabled&buff.icefury.up&buff.master_of_the_elements.up;
-	if talents[EL.Icefury] and talents[EL.MasterOfTheElements] and buff[EL.Icefury].up and buff[EL.MasterOfTheElements].up then
+	if talents[EL.Icefury] and talents[EL.MasterOfTheElements] and buff[EL.Icefury].up and buffMasterOfElements then
 		return EL.FrostShock;
 	end
 

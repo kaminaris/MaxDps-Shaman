@@ -54,6 +54,9 @@ local EH = {
 
 	StrengthOfEarth      = 273461,
 	StrengthOfEarthAura  = 273465,
+
+	LightningConduit     = 275388,
+	LightningConduitAura = 275391,
 };
 
 setmetatable(EH, Shaman.spellMeta);
@@ -258,7 +261,7 @@ function Shaman:EnhancementDefaultCore()
 
 	-- stormstrike,cycle_targets=1,if=active_enemies>1&azerite.lightning_conduit.enabled&!debuff.lightning_conduit.up&variable.furyCheck_SS;
 	if cooldown[EH.Stormstrike].ready and maelstrom >= 30 and (
-		targets > 1 and azerite[EH.LightningConduit] > 0 and not debuff[EH.LightningConduit].up and furyCheckSS
+		targets > 1 and azerite[EH.LightningConduit] > 0 and not debuff[EH.LightningConduitAura].up and furyCheckSS
 	) then
 		return EH.Stormstrike;
 	end
@@ -395,7 +398,7 @@ function Shaman:EnhancementFreezerburnCore()
 
 	-- stormstrike,cycle_targets=1,if=active_enemies>1&azerite.lightning_conduit.enabled&!debuff.lightning_conduit.up&variable.furyCheck_SS;
 	if cooldown[EH.Stormstrike].ready and maelstrom >= 30 and (
-		targets > 1 and azerite[EH.LightningConduit] > 0 and not debuff[EH.LightningConduit].up and furyCheckSS
+		targets > 1 and azerite[EH.LightningConduit] > 0 and not debuff[EH.LightningConduitAura].up and furyCheckSS
 	) then
 		return EH.Stormstrike;
 	end
