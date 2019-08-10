@@ -92,6 +92,8 @@ function Shaman:Elemental()
 	fd.tmRemains = tmRemains;
 	fd.hasTotemMastery = hasTotemMastery;
 
+	MaxDps:GlowEssences();
+
 	if talents[EL.Ascendance] then
 		MaxDps:GlowCooldown(EL.Ascendance, cooldown[EL.Ascendance].ready);
 	end

@@ -226,6 +226,8 @@ function Shaman:EnhancementCds()
 	local cooldown = fd.cooldown;
 	local talents = fd.talents;
 
+	MaxDps:GlowEssences();
+
 	-- feral_spirit;
 	MaxDps:GlowCooldown(EH.FeralSpirit, cooldown[EH.FeralSpirit].ready);
 
