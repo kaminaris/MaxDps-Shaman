@@ -476,7 +476,11 @@ function Shaman:ElementalSingleTarget()
 	end
 
 	-- stormkeeper,if=talent.stormkeeper.enabled&(raid_event.adds.count<3|raid_event.adds.in>50)&(maelstrom<44);
-	if cooldown[EL.Stormkeeper].ready and currentSpell ~= EL.Stormkeeper and maelstrom < 44 then
+	if talents[EL.Stormkeeper] and
+		cooldown[EL.Stormkeeper].ready and
+		currentSpell ~= EL.Stormkeeper and
+		maelstrom < 44
+	then
 		return EL.Stormkeeper;
 	end
 
