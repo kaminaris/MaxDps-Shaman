@@ -21,8 +21,6 @@ local EL = {
 	ElementalBlast = 117014,
 	FireElemental = 198067,
 	FlameShock = 188389,
-	FlametongueWeapon = 318038,
-	FlametongueWeaponEnchantID = 5400,
 	FrostShock = 196840,
 	Icefury = 210714,
 	LavaBurst = 51505,
@@ -76,18 +74,6 @@ function Shaman:ElementalCooldowns()
 	local talents = fd.talents;
 
 	local petActive = UnitExists('pet');
-
-	local hasMainHandEnchant, mainHandExpiration, _, mainHandEnchantID, _, _, _, _ = GetWeaponEnchantInfo();
-	local flametongueEnchantRemaining = false;
-
-	if hasMainHandEnchant then
-		if mainHandEnchantID == EL.FlametongueWeaponEnchantID then
-			flametongueEnchantRemaining = mainHandExpiration / 1000;
-		end
-	end
-
-	local inCombat = UnitAffectingCombat("player");
-	MaxDps:GlowCooldown(EL.FlametongueWeapon, not flametongueEnchantRemaining or (not inCombat and flametongueEnchantRemaining <= 300));
 
 	if talents[EL.FireElemental] then
 		MaxDps:GlowCooldown(EL.FireElemental, (not petActive or not talents[EL.PrimalElementalist]) and cooldown[EL.FireElemental].ready);
