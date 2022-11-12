@@ -18,6 +18,7 @@ local EL = {
 	Earthquake = 61882,
 	EchoesOfGreatSundering = 384087,
 	ElectrifiedShocks = 382086,
+	ElectrifiedShocksDebuff = 382089,
 	ElementalBlast = 117014,
 	FireElemental = 198067,
 	FlameShock = 188389,
@@ -31,38 +32,59 @@ local EL = {
 	PrimordialWave = 375982,
 	StormElemental = 192249,
 	Stormkeeper = 191634,
-	SurgeOfPower = 262303
+	SurgeOfPower = 262303,
+	FlowOfPower = 385923
 };
 
 setmetatable(EL, Shaman.spellMeta);
 
+local function getSpellCost(spellId, defaultCost)
+	local cost = GetSpellPowerCost(spellId);
+	if cost ~= nil then
+		return cost[1].cost;
+	end
+
+	return defaultCost
+end
+
 function Shaman:Elemental()
 	local fd = MaxDps.FrameData;
 	fd.moving = GetUnitSpeed('player') > 0;
-	fd.maelstrom = UnitPower('player', Maelstrom);
 	fd.earthShockCost = 999999; -- if not talented, it should never be casted
 	fd.elementalBlastCost = 999999; -- if not talented, it should never be casted
 	local targets = MaxDps:SmartAoe();
 	local talents = fd.talents;
 
+	local maelstrom = UnitPower('player', Maelstrom);
+
 	if talents[EL.EarthShock] then
-		local earthShockCost = GetSpellPowerCost(EL.EarthShock);
-		if earthShockCost ~= nil then
-			fd.earthShockCost = earthShockCost[1].cost;
-		end
+		fd.earthShockCost = getSpellCost(EL.EarthShock, 60)
 	end
 
 	if talents[EL.ElementalBlast] then
-		local elementalBlastCost = GetSpellPowerCost(EL.ElementalBlast);
-		if elementalBlastCost ~= nil then
-			fd.elementalBlastCost = elementalBlastCost[1].cost;
-		end
+		fd.elementalBlastCost = getSpellCost(EL.ElementalBlast, 90)
 	end
+
+	local currentSpell = fd.currentSpell
+	if currentSpell == EL.ElementalBlast then
+		maelstrom = maelstrom - fd.elementalBlastCost
+	elseif currentSpell == EL.Earthquake then
+		maelstrom = maelstrom - getSpellCost(EL.Earthquake, 60)
+	elseif currentSpell == EL.Icefury then
+		maelstrom = maelstrom + 25
+	elseif currentSpell == EL.LightningBolt then
+		maelstrom = maelstrom + 8 + (talents[EL.FlowOfPower] and 2 or 0)
+	elseif currentSpell == EL.LavaBurst then
+		maelstrom = maelstrom + 10 + (talents[EL.FlowOfPower] and 2 or 0)
+	end
+
+	if maelstrom < 0 then maelstrom = 0 end
+	fd.maelstrom = maelstrom
 
 	Shaman:ElementalCooldowns();
 
 	if targets <= 1 then
-		return Shaman:ElementalSingleTarget();
+		return Shaman:ElementalSingleTarget()
 	else
 		return Shaman:ElementalAoe();
 	end
@@ -130,7 +152,11 @@ function Shaman:ElementalSingleTarget()
 			return EL.Earthquake;
 		end
 
-		if talents[EL.EarthShock] and maelstrom >= 90 then
+		if talents[EL.ElementalBlast] then
+			if currentSpell ~= EL.ElementalBlast and cooldown[EL.ElementalBlast].ready and maelstrom >= elementalBlastCost then
+				return EL.ElementalBlast
+			end
+		elseif talents[EL.EarthShock] and maelstrom >= 90 then
 			return EL.EarthShock;
 		end
 
@@ -147,7 +173,7 @@ function Shaman:ElementalSingleTarget()
 		return EL.FlameShock;
 	end
 
-	if talents[EL.EarthShock] and maelstrom >= 90 then
+	if talents[EL.EarthShock] and not talents[EL.ElementalBlast] and maelstrom >= 90 then
 		return EL.EarthShock;
 	end
 
@@ -155,7 +181,7 @@ function Shaman:ElementalSingleTarget()
 		return EL.ElementalBlast;
 	end
 
-	if talents[EL.EarthShock] and maelstrom >= 83 then
+	if talents[EL.EarthShock] and not talents[EL.ElementalBlast] and maelstrom >= 83 then
 		return EL.EarthShock;
 	end
 
@@ -164,7 +190,7 @@ function Shaman:ElementalSingleTarget()
 	end
 
 	if buff[EL.Stormkeeper].up then
-		return EL.LightningBolt;
+		return Shaman:ElementalStormkeeper();
 	end
 
 	if buff[EL.SurgeOfPower].up or buff[EL.MasterOfTheElementsAura].up then
@@ -175,7 +201,7 @@ function Shaman:ElementalSingleTarget()
 		return EL.LiquidMagmaTotem;
 	end
 
-	if talents[EL.EarthShock] and maelstrom >= earthShockCost and buff[EL.MasterOfTheElementsAura].up then
+	if talents[EL.EarthShock] and not talents[EL.ElementalBlast] and maelstrom >= earthShockCost and buff[EL.MasterOfTheElementsAura].up then
 		return EL.EarthShock;
 	end
 
@@ -191,7 +217,7 @@ function Shaman:ElementalSingleTarget()
 		return EL.Icefury;
 	end
 
-	if buff[EL.Icefury].up and buff[EL.ElectrifiedShocks].up and buff[EL.ElectrifiedShocks].remains < 1.1 * gcd then
+	if buff[EL.Icefury].up and not debuff[EL.ElectrifiedShocksDebuff].up then
 		return EL.FrostShock;
 	end
 
@@ -208,4 +234,34 @@ function Shaman:ElementalSingleTarget()
 	end
 
 	return EL.LightningBolt;
+end
+
+function Shaman:ElementalStormkeeper()
+	local fd = MaxDps.FrameData;
+	local cooldown = fd.cooldown;
+	local talents = fd.talents;
+	local debuff = fd.debuff;
+	local buff = fd.buff;
+	local maelstrom = fd.maelstrom;
+	local gcd = fd.gcd;
+	local elementalBlastCost = fd.elementalBlastCost;
+	local currentSpell = fd.currentSpell;
+
+	if not debuff[EL.ElectrifiedShocksDebuff].up and talents[EL.Icefury] and currentSpell ~= EL.Icefury and cooldown[EL.Icefury].ready then
+		return EL.Icefury
+	end
+
+	if buff[EL.Icefury].up and (not debuff[EL.ElectrifiedShocksDebuff].up or debuff[EL.ElectrifiedShocksDebuff].remains < 2 * gcd) then
+		return EL.FrostShock
+	end
+
+	if talents[EL.LavaBurst] and cooldown[EL.LavaBurst].ready and currentSpell ~= EL.LavaBurst then
+		return EL.LavaBurst;
+	end
+
+	if talents[EL.ElementalBlast] and cooldown[EL.ElementalBlast].ready and currentSpell ~= EL.ElementalBlast and maelstrom >= elementalBlastCost then
+		return EL.ElementalBlast;
+	end
+
+	return EL.LightningBolt
 end
