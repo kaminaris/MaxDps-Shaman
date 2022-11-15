@@ -65,11 +65,15 @@ function Shaman:Elemental()
 		fd.elementalBlastCost = getSpellCost(EL.ElementalBlast, 90)
 	end
 
+	if talents[EL.Earthquake] then
+		fd.earthQuakeCost = getSpellCost(EL.Earthquake, 60)
+	end
+
 	local currentSpell = fd.currentSpell
 	if currentSpell == EL.ElementalBlast then
 		maelstrom = maelstrom - fd.elementalBlastCost
 	elseif currentSpell == EL.Earthquake then
-		maelstrom = maelstrom - getSpellCost(EL.Earthquake, 60)
+		maelstrom = maelstrom - fd.earthQuakeCost
 	elseif currentSpell == EL.Icefury then
 		maelstrom = maelstrom + 25
 	elseif currentSpell == EL.LightningBolt then
@@ -117,9 +121,14 @@ end
 function Shaman:ElementalAoe()
 	local fd = MaxDps.FrameData;
 	local cooldown = fd.cooldown;
+	local buff = fd.buff;
+	local debuff = fd.debuff;
 	local talents = fd.talents;
+	local currentSpell = fd.currentSpell;
+	local maelstrom = fd.maelstrom;
+	local elementalBlastCost = fd.elementalBlastCost;
 
-	if talents[EL.Stormkeeper] and cooldown[EL.Stormkeeper].ready then
+	if talents[EL.Stormkeeper] and cooldown[EL.Stormkeeper].ready and currentSpell ~= EL.Stormkeeper then
 		return EL.Stormkeeper;
 	end
 
@@ -127,7 +136,19 @@ function Shaman:ElementalAoe()
 		return EL.LiquidMagmaTotem;
 	end
 
-	if cooldown[EL.Earthquake] then
+	if talents[EL.Icefury] and cooldown[EL.Icefury].ready and currentSpell ~= EL.Icefury then
+		return EL.Icefury;
+	end
+
+	if buff[EL.Icefury].up and not debuff[EL.ElectrifiedShocksDebuff].up then
+		return EL.FrostShock;
+	end
+
+	if talents[EL.ElementalBlast] and cooldown[EL.ElementalBlast].ready and currentSpell ~= EL.ElementalBlast and maelstrom >= elementalBlastCost then
+		return EL.ElementalBlast;
+	end
+
+	if talents[EL.Earthquake] and cooldown[EL.Earthquake].ready and maelstrom >= fd.earthQuakeCost then
 		return EL.Earthquake;
 	end
 
@@ -148,7 +169,7 @@ function Shaman:ElementalSingleTarget()
 	local currentSpell = fd.currentSpell;
 
 	if buff[EL.Ascendance].up then
-		if buff[EL.EchoesOfGreatSundering].up and cooldown[EL.Earthquake].ready then
+		if buff[EL.EchoesOfGreatSundering].up and talents[EL.Earthquake] and cooldown[EL.Earthquake].ready and maelstrom >= fd.earthQuakeCost then
 			return EL.Earthquake;
 		end
 
