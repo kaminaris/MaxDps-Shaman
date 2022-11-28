@@ -27,6 +27,7 @@ local EH = {
 	DoomWinds = 384352,
 	EarthElemental = 198103,
 	ElementalBlast = 117014,
+	ElementalSpirits =262624, 
 	FaeTransfusion = 328928,
 	FeralSpirit = 51533,
 	FeralSpiritBuff = 333957,
@@ -37,7 +38,9 @@ local EH = {
 	FrostShock = 196840,
 	GatheringStorms = 384363,
 	HailstormBuff = 334196,
+	HealingStreamTotem = 5394,
 	HotHand = 201900,
+	HotHandBuff = 215785,
 	IceStrike = 342240,
 	LashingFlamesDebuff = 334168,
 	LavaBurst = 51505,
@@ -48,6 +51,7 @@ local EH = {
 	MaelstromWeapon = 344179,
 	MoltenWeapon = 224125,
 	NecrolordPrimordialWave = 326059,
+	OverflowingMaelstrom = 384149,
 	PrimordialWave = 375982,
 	PrimordialWaveBuff = 375986,
 	Stormbringer = 201845,
@@ -165,15 +169,23 @@ function Shaman:EnhancementAoe()
 		return EH.WindfuryTotem;
 	end
 
-	if cooldown[EH.FlameShock].ready and not debuff[EH.FlameShock].up and activeFlameShock < 6 then
+	if cooldown[EH.FlameShock].ready and not debuff[EH.FlameShock].up and activeFlameShock < 6 then --review this, not sure about activeFlameShock
 		return EH.FlameShock;
 	end
+	
+	if buff[EH.MaelstromWeapon].count == 10 and buff[EH.PrimordialWaveBuff].up then
+		return EH.LightningBolt;
+	end
 
-	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up then
+	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up and not talents[EH.OverflowingMaelstrom] then
 		return EH.LightningBolt;
 	end
 
 	if buff[EH.MaelstromWeapon].count == 10 and talents[EH.ChainLightning] then
+		return EH.ChainLightning;
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and talents[EH.ChainLightning] and not talents[EH.OverflowingMaelstrom] then
 		return EH.ChainLightning;
 	end
 
@@ -191,7 +203,7 @@ function Shaman:EnhancementAoe()
 		end
 	end
 
-	if talents[EH.FireNova] and cooldown[EH.FireNova].ready and activeFlameShock == 6 then
+	if talents[EH.FireNova] and cooldown[EH.FireNova].ready and activeFlameShock >= 6 then
 		return EH.FireNova;
 	end
 
@@ -296,7 +308,7 @@ function Shaman:EnhancementSingle()
 	local debuff = fd.debuff;
 	local talents = fd.talents;
 	local totems = fd.totems;
-
+	
 	if talents[EH.WindfuryTotem] and totems.Windfury <= 10 then
 		return EH.WindfuryTotem;
 	end
@@ -306,7 +318,7 @@ function Shaman:EnhancementSingle()
 		return Windstrike;
 	end
 
-	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready and (buff[EH.HotHand].up or buff[EH.AshenCatalyst].count > 6) then
+	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready and (talents[EH.HotHand] and buff[EH.HotHandBuff].up or buff[EH.AshenCatalyst].count > 5) then --talentsAshenCatalyst?
 		return EH.LavaLash
 	end
 
@@ -332,19 +344,31 @@ function Shaman:EnhancementSingle()
 		return EH.FlameShock;
 	end
 
-	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up then
+	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up and not talents[EH.OverflowingMaelstrom] then
 		return EH.LightningBolt;
 	end
 
+	if buff[EH.MaelstromWeapon].count == 10 and buff[EH.PrimordialWaveBuff].up then
+		return EH.LightningBolt;
+	end
+	
 	if talents[EH.PrimordialWave] and not buff[EH.PrimordialWaveBuff].up and cooldown[EH.PrimordialWave].ready then
 		return EH.PrimordialWave
 	end
 
-	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.FeralSpiritBuff].up then
+	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.FeralSpiritBuff].up and not talents[EH.OverflowingMaelstrom] then
 		if talents[EH.ElementalBlast] then
 			if cooldown[EH.ElementalBlast].ready then return EH.ElementalBlast end;
-		elseif talents[EH.LavaBurst] then
-			if cooldown[EH.LavaBurst].ready then return EH.LavaBurst end;
+		elseif talents[EH.LavaBurst] and not talents [EH.ElementalBlast] then
+			if cooldown[EH.LavaBurst].ready and talents[EH.ElementalSpirits] and buff[EH.MoltenWeapon].up then return EH.LavaBurst end;
+		end
+	end
+	
+	if buff[EH.MaelstromWeapon].count == 10 and buff[EH.FeralSpiritBuff].up and talents[EH.OverflowingMaelstrom] then
+		if talents[EH.ElementalBlast] then
+			if cooldown[EH.ElementalBlast].ready then return EH.ElementalBlast end;
+		elseif talents[EH.LavaBurst] and not talents [EH.ElementalBlast] then
+			if cooldown[EH.LavaBurst].ready and talents[EH.ElementalSpirits] and buff[EH.MoltenWeapon].up then return EH.LavaBurst end;
 		end
 	end
 
@@ -368,20 +392,27 @@ function Shaman:EnhancementSingle()
 		return EH.Stormstrike;
 	end
 
-	if buff[EH.MaelstromWeapon].count >= 5 then
-		if talents[EH.ElementalBlast] then
-			if cooldown[EH.ElementalBlast].ready and cooldown[EH.ElementalBlast].charges == cooldown[EH.ElementalBlast].maxCharges then
-				return EH.ElementalBlast
-			end
-		elseif talents[EH.LavaBurst] and cooldown[EH.LavaBurst].ready then
-			return EH.LavaBurst;
-		end
+	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up and talents[EH.OverflowingMaelstrom] then
+		return EH.LightningBolt;
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready and cooldown[EH.ElementalBlast].charges == cooldown[EH.ElementalBlast].maxCharges then 
+		return EH.ElementalBlast
 	end
 
+	if buff[EH.MaelstromWeapon].count == 10 and talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready then 
+		return EH.ElementalBlast
+	end
+
+	if buff[EH.MaelstromWeapon].count >= 5 and not talents[EH.OverflowingMaelstrom]	and talents[EH.LavaBurst] and not talents [EH.ElementalBlast] and cooldown[EH.LavaBurst].ready and debuff[EH.FlameShock].up then 
+		return EH.LavaBurst
+	end
+	
+	if buff[EH.MaelstromWeapon].count == 10 and talents[EH.OverflowingMaelstrom] and talents[EH.LavaBurst] and not talents [EH.ElementalBlast] and cooldown[EH.LavaBurst].ready and debuff[EH.FlameShock].up then 
+		return EH.LavaBurst
+	end
+	
 	if buff[EH.MaelstromWeapon].count == 10 then
-		if talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready then
-			return EH.ElementalBlast;
-		end
 		return EH.LightningBolt;
 	end
 
@@ -392,11 +423,7 @@ function Shaman:EnhancementSingle()
 	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready then
 		return EH.LavaLash;
 	end
-
-	if buff[EH.MaelstromWeapon].count == 5 then
-		return EH.LightningBolt;
-	end
-
+	
 	if talents[EH.Sundering] and cooldown[EH.Sundering].ready and talents[EH.LavaLash] and cooldown[EH.LavaLash].ready then
 		return EH.LavaLash;
 	end
@@ -404,7 +431,27 @@ function Shaman:EnhancementSingle()
 	if talents[EH.SwirlingMaelstrom] and talents[EH.FireNova] and cooldown[EH.FireNova].ready and debuff[EH.FlameShock].up then
 		return EH.FireNova;
 	end
-
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and not talents[EH.OverflowingMaelstrom]	and talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready then 
+		return EH.ElementalBlast
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 8 and talents[EH.OverflowingMaelstrom] and talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready then 
+		return EH.ElementalBlast
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 8 and talents[EH.OverflowingMaelstrom] and talents[EH.LavaBurst] and not talents [EH.ElementalBlast] and cooldown[EH.LavaBurst].ready and debuff[EH.FlameShock].up then 
+		return EH.LavaBurst
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and not talents[EH.OverflowingMaelstrom] then
+		return EH.LightningBolt;
+	end
+		
+	if buff[EH.MaelstromWeapon].count >= 8 and talents[EH.OverflowingMaelstrom] then
+		return EH.LightningBolt;
+	end
+	
 	if talents[EH.FrostShock] and cooldown[EH.FrostShock].ready then
 		return EH.FrostShock;
 	end
@@ -420,6 +467,27 @@ function Shaman:EnhancementSingle()
 	if cooldown[EH.FlameShock].ready then
 		return EH.FlameShock;
 	end
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and talents[EH.OverflowingMaelstrom] and talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready then 
+		return EH.ElementalBlast
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and talents[EH.OverflowingMaelstrom] and talents[EH.LavaBurst] and not talents [EH.ElementalBlast] and cooldown[EH.LavaBurst].ready and debuff[EH.FlameShock].up then 
+		return EH.LavaBurst
+	end
+	
+	if buff[EH.MaelstromWeapon].count >= 5 and talents[EH.OverflowingMaelstrom] then
+		return EH.LightningBolt;
+	end	
+	
+--	if talents[EH.HealingStreamTotem] and cooldown[EH.HealingStreamTotem].ready then
+--		return EH.HealingStreamTotem;
+--	end
+	
+	if talents[EH.WindfuryTotem] then
+		return EH.WindfuryTotem;
+	end
+	
 end
 
 
