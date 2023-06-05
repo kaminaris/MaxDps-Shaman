@@ -38,10 +38,10 @@ local EL = {
 
 setmetatable(EL, Shaman.spellMeta);
 
-local function getSpellCost(spellId, defaultCost)
+local function getSpellCost(spellId, defaultCost, resource)
 	local cost = GetSpellPowerCost(spellId);
-	if cost ~= nil then
-		return cost[1].cost;
+	if cost and resource and cost[resource] and cost[resource].cost then
+	    return cost[resource].cost;
 	end
 
 	return defaultCost
@@ -58,15 +58,15 @@ function Shaman:Elemental()
 	local maelstrom = UnitPower('player', Maelstrom);
 
 	if talents[EL.EarthShock] then
-		fd.earthShockCost = getSpellCost(EL.EarthShock, 60)
+		fd.earthShockCost = getSpellCost(EL.EarthShock, 60, 2)
 	end
 
 	if talents[EL.ElementalBlast] then
-		fd.elementalBlastCost = getSpellCost(EL.ElementalBlast, 90)
+		fd.elementalBlastCost = getSpellCost(EL.ElementalBlast, 90, 2)
 	end
 
 	if talents[EL.Earthquake] then
-		fd.earthQuakeCost = getSpellCost(EL.Earthquake, 60)
+		fd.earthQuakeCost = getSpellCost(EL.Earthquake, 60, 2)
 	end
 
 	local currentSpell = fd.currentSpell
