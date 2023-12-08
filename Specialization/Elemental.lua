@@ -1,289 +1,423 @@
-local _, addonTable = ...;
+
+local _, addonTable = ...
 
 --- @type MaxDps
 if not MaxDps then return end
-local MaxDps = MaxDps;
-local UnitExists = UnitExists;
-local UnitPower = UnitPower;
-local GetUnitSpeed = GetUnitSpeed;
-local Maelstrom = Enum.PowerType.Maelstrom;
 
-local Shaman = addonTable.Shaman;
+local Shaman = addonTable.Shaman
+local MaxDps = MaxDps
+local UnitPower = UnitPower
+local UnitHealth = UnitHealth
+local UnitAura = UnitAura
+local GetSpellDescription = GetSpellDescription
+local UnitHealthMax = UnitHealthMax
+local UnitPowerMax = UnitPowerMax
+local PowerTypeMaelstrom = Enum.PowerType.Maelstrom
 
-local EL = {
-	Ascendance = 114050,
-	ChainLightning = 188443,
-	EarthElemental = 198103,
-	EarthShock = 8042,
-	Earthquake = 61882,
-	EchoesOfGreatSundering = 384087,
-	ElectrifiedShocks = 382086,
-	ElectrifiedShocksDebuff = 382089,
-	ElementalBlast = 117014,
-	FireElemental = 198067,
-	FlameShock = 188389,
-	FrostShock = 196840,
-	Icefury = 210714,
-	LavaBurst = 51505,
-	LightningBolt = 188196,
-	LiquidMagmaTotem = 192222,
-	MasterOfTheElementsAura = 260734,
-	PrimalElementalist = 117013,
-	PrimordialWave = 375982,
-	StormElemental = 192249,
-	Stormkeeper = 191634,
-	SurgeOfPower = 262303,
-	FlowOfPower = 385923
-};
+local fd
+local cooldown
+local buff
+local debuff
+local talents
+local timetodie
+local targets
+local maelstrom
+local targetHP
+local targetmaxHP
+local targethealthPerc
+local curentHP
+local maxHP
+local healthPerc
 
-setmetatable(EL, Shaman.spellMeta);
-
-local function getSpellCost(spellId, defaultCost, resource)
-	local cost = GetSpellPowerCost(spellId);
-	if cost and resource and cost[resource] and cost[resource].cost then
-	    return cost[resource].cost;
-	end
-
-	return defaultCost
-end
+local className, classFilename, classId = UnitClass('player')
+local currentSpec = GetSpecialization()
+local currentSpecName = currentSpec and select(2, GetSpecializationInfo(currentSpec)) or "None"
+local classtable
 
 function Shaman:Elemental()
-	local fd = MaxDps.FrameData;
-	fd.moving = GetUnitSpeed('player') > 0;
-	fd.earthShockCost = 999999; -- if not talented, it should never be casted
-	fd.elementalBlastCost = 999999; -- if not talented, it should never be casted
-	local targets = MaxDps:SmartAoe();
-	local talents = fd.talents;
-
-	local maelstrom = UnitPower('player', Maelstrom);
-
-	if talents[EL.EarthShock] then
-		fd.earthShockCost = getSpellCost(EL.EarthShock, 60, 2)
-	end
-
-	if talents[EL.ElementalBlast] then
-		fd.elementalBlastCost = getSpellCost(EL.ElementalBlast, 90, 2)
-	end
-
-	if talents[EL.Earthquake] then
-		fd.earthQuakeCost = getSpellCost(EL.Earthquake, 60, 2)
-	end
-
-	local currentSpell = fd.currentSpell
-	if currentSpell == EL.ElementalBlast then
-		maelstrom = maelstrom - fd.elementalBlastCost
-	elseif currentSpell == EL.Earthquake then
-		maelstrom = maelstrom - fd.earthQuakeCost
-	elseif currentSpell == EL.Icefury then
-		maelstrom = maelstrom + 25
-	elseif currentSpell == EL.LightningBolt then
-		maelstrom = maelstrom + 8 + (talents[EL.FlowOfPower] and 2 or 0)
-	elseif currentSpell == EL.LavaBurst then
-		maelstrom = maelstrom + 10 + (talents[EL.FlowOfPower] and 2 or 0)
-	end
-
-	if maelstrom < 0 then maelstrom = 0 end
-	fd.maelstrom = maelstrom
-
-	Shaman:ElementalCooldowns();
-
-	if targets <= 1 then
-		return Shaman:ElementalSingleTarget()
-	else
-		return Shaman:ElementalAoe();
-	end
-	-- Test-PR
+    fd = MaxDps.FrameData
+    cooldown = fd.cooldown
+    buff = fd.buff
+    debuff = fd.debuff
+    talents = fd.talents
+    timetodie = fd.timetodie or 0
+    targets = MaxDps:SmartAoe()
+    maelstrom = UnitPower('player', PowerTypeMaelstrom)
+    targetHP = UnitHealth('target')
+    targetmaxHP = UnitHealthMax('target')
+    targethealthPerc = (targetHP / targetmaxHP) * 100
+    curentHP = UnitHealth('player')
+    maxHP = UnitHealthMax('player')
+    healthPerc = (curentHP / maxHP) * 100
+    classtable = MaxDps.SpellTable
+    classtable.LavaBeam = 114074
+    classtable.LavaSurgeBuff = 77762
+    classtable.MasteroftheElementsBuff = 260734
+    classtable.PowerofTheMaelstromBuff = 191877
+    setmetatable(classtable, Shaman.spellMeta)
+    if targets > 1  then
+        return Shaman:ElementalMultiTarget()
+    end
+    return Shaman:ElementalSingleTarget()
 end
 
-function Shaman:ElementalCooldowns()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local talents = fd.talents;
+--optional abilities list
 
-	local petActive = UnitExists('pet');
 
-	if talents[EL.FireElemental] then
-		MaxDps:GlowCooldown(EL.FireElemental, (not petActive or not talents[EL.PrimalElementalist]) and cooldown[EL.FireElemental].ready);
-	end
-
-	if talents[EL.StormElemental] then
-		MaxDps:GlowCooldown(EL.StormElemental, (not petActive or not talents[EL.PrimalElementalist]) and cooldown[EL.StormElemental].ready);
-	end
-
-	if talents[EL.EarthElemental] then
-		MaxDps:GlowCooldown(EL.EarthElemental, (not petActive or not talents[EL.PrimalElementalist]) and cooldown[EL.EarthElemental].ready);
-	end
-
-	if talents[EL.Ascendance] then
-		MaxDps:GlowCooldown(EL.Ascendance, cooldown[EL.Ascendance].ready);
-	end
-end
-
-function Shaman:ElementalAoe()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local buff = fd.buff;
-	local debuff = fd.debuff;
-	local talents = fd.talents;
-	local currentSpell = fd.currentSpell;
-	local maelstrom = fd.maelstrom;
-	local elementalBlastCost = fd.elementalBlastCost;
-
-	if talents[EL.Stormkeeper] and cooldown[EL.Stormkeeper].ready and currentSpell ~= EL.Stormkeeper then
-		return EL.Stormkeeper;
-	end
-
-	if talents[EL.LiquidMagmaTotem] and cooldown[EL.LiquidMagmaTotem].ready then
-		return EL.LiquidMagmaTotem;
-	end
-
-	if talents[EL.Icefury] and cooldown[EL.Icefury].ready and currentSpell ~= EL.Icefury then
-		return EL.Icefury;
-	end
-
-	if buff[EL.Icefury].up and not debuff[EL.ElectrifiedShocksDebuff].up then
-		return EL.FrostShock;
-	end
-
-	if talents[EL.ElementalBlast] and cooldown[EL.ElementalBlast].ready and currentSpell ~= EL.ElementalBlast and maelstrom >= elementalBlastCost then
-		return EL.ElementalBlast;
-	end
-
-	if talents[EL.Earthquake] and cooldown[EL.Earthquake].ready and maelstrom >= fd.earthQuakeCost then
-		return EL.Earthquake;
-	end
-
-	return EL.ChainLightning;
-end
-
+--Single-Target Rotation
 function Shaman:ElementalSingleTarget()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local talents = fd.talents;
-	local debuff = fd.debuff;
-	local buff = fd.buff;
-	local maelstrom = fd.maelstrom;
-	local gcd = fd.gcd;
-	local earthShockCost = fd.earthShockCost;
-	local elementalBlastCost = fd.elementalBlastCost;
-	local moving = fd.moving;
-	local currentSpell = fd.currentSpell;
-
-	if buff[EL.Ascendance].up then
-		if buff[EL.EchoesOfGreatSundering].up and talents[EL.Earthquake] and cooldown[EL.Earthquake].ready and maelstrom >= fd.earthQuakeCost then
-			return EL.Earthquake;
-		end
-
-		if talents[EL.ElementalBlast] then
-			if currentSpell ~= EL.ElementalBlast and cooldown[EL.ElementalBlast].ready and maelstrom >= elementalBlastCost then
-				return EL.ElementalBlast
-			end
-		elseif talents[EL.EarthShock] and maelstrom >= 90 then
-			return EL.EarthShock;
-		end
-
-		if buff[EL.Ascendance].remains > gcd then
-			return EL.LavaBurst;
-		end
-	end
-
-	if not debuff[EL.FlameShock].up then
-		if talents[EL.PrimordialWave] and cooldown[EL.PrimordialWave].ready then
-			return EL.PrimordialWave;
-		end
-
-		return EL.FlameShock;
-	end
-
-	if talents[EL.EarthShock] and not talents[EL.ElementalBlast] and maelstrom >= 90 then
-		return EL.EarthShock;
-	end
-
-	if talents[EL.ElementalBlast] and cooldown[EL.ElementalBlast].ready and currentSpell ~= EL.ElementalBlast and maelstrom >= elementalBlastCost then
-		return EL.ElementalBlast;
-	end
-
-	if talents[EL.EarthShock] and not talents[EL.ElementalBlast] and maelstrom >= 83 then
-		return EL.EarthShock;
-	end
-
-	if talents[EL.Stormkeeper] and cooldown[EL.Stormkeeper].ready and currentSpell ~= EL.Stormkeeper then
-		return EL.Stormkeeper;
-	end
-
-	if buff[EL.Stormkeeper].up then
-		return Shaman:ElementalStormkeeper();
-	end
-
-	if buff[EL.SurgeOfPower].up or buff[EL.MasterOfTheElementsAura].up then
-		return EL.LightningBolt;
-	end
-
-	if talents[EL.LiquidMagmaTotem] and cooldown[EL.LiquidMagmaTotem].ready then
-		return EL.LiquidMagmaTotem;
-	end
-
-	if talents[EL.EarthShock] and not talents[EL.ElementalBlast] and maelstrom >= earthShockCost and buff[EL.MasterOfTheElementsAura].up then
-		return EL.EarthShock;
-	end
-
-	if debuff[EL.FlameShock].refreshable then
-		if talents[EL.PrimordialWave] and cooldown[EL.PrimordialWave].ready then
-			return EL.PrimordialWave;
-		end
-
-		return EL.FlameShock;
-	end
-
-	if talents[EL.Icefury] and cooldown[EL.Icefury].ready and currentSpell ~= EL.Icefury then
-		return EL.Icefury;
-	end
-
-	if buff[EL.Icefury].up and not debuff[EL.ElectrifiedShocksDebuff].up then
-		return EL.FrostShock;
-	end
-
-	if talents[EL.LavaBurst] and cooldown[EL.LavaBurst].ready and currentSpell ~= EL.LavaBurst then
-		return EL.LavaBurst;
-	end
-
-	if moving then
-		if cooldown[EL.FlameShock].refreshable then
-			return EL.FlameShock;
-		end
-
-		return EL.FrostShock;
-	end
-
-	return EL.LightningBolt;
+    if MaxDps.Tier and MaxDps.Tier[31].count >= 4 then
+        --Cast Fire Elemental.
+        if talents[classtable.FireElemental] and cooldown[classtable.FireElemental].ready then
+            return classtable.FireElemental
+        end
+        --Cast Primordial Wave if Splintered Elements is not up.
+        if talents[classtable.PrimordialWave] and not buff[classtable.SplinteredElements].up and cooldown[classtable.PrimordialWave].ready then
+            return classtable.PrimordialWave
+        end
+        --Cast Flame Shock during the pandemic window if Primordial Wave will not be available in time.
+        if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].duration >= 6 and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Stormkeeper when you have at least 116 Maelstrom (so you can always boost both bolts with Surge of Power)
+        if talents[classtable.Stormkeeper] and maelstrom >= 116 and cooldown[classtable.Stormkeeper].ready then
+            return classtable.Stormkeeper
+        end
+        --Cast Lava Burst if either Lava Surge or Ascendance is up.
+        if talents[classtable.LavaBurst] and (talents[classtable.LavaSurge] and buff[classtable.LavaSurgeBuff].up) or (talents[classtable.Ascendance] and buff[classtable.Ascendance].up) and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Elemental Blast if Master of the Elements is up.
+        if talents[classtable.ElementalBlast] and maelstrom >= 90 and (talents[classtable.MasteroftheElements] and buff[classtable.MasteroftheElementsBuff].up) and cooldown[classtable.ElementalBlast].ready then
+            return classtable.ElementalBlast
+        end
+        --Cast Lava Burst.
+        if talents[classtable.LavaBurst] and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Frost Shock if Icefury buffs are available and Master of the Elements is up.
+        if talents[classtable.FrostShock] and (talents[classtable.Icefury] and buff[classtable.Icefury].up) and (talents[classtable.MasteroftheElements] and buff[classtable.MasteroftheElementsBuff].up) and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+        --Cast Lightning Bolt if Surge of Power is available.
+        if (talents[classtable.SurgeofPower] and buff[classtable.SurgeofPower].up) and cooldown[classtable.LightningBolt].ready then
+            return classtable.LightningBolt
+        end
+        --Cast Icefury.
+        if talents[classtable.Icefury] and cooldown[classtable.Icefury].ready then
+            return classtable.Icefury
+        end
+        --Cast Elemental Blast.
+        if talents[classtable.ElementalBlast] and maelstrom >= 90 and cooldown[classtable.ElementalBlast].ready then
+            return classtable.ElementalBlast
+        end
+        --Cast Frost Shock if Icefury buffs are available.
+        if talents[classtable.FrostShock] and (talents[classtable.Icefury] and buff[classtable.Icefury].up) and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+        --Cast Lightning Bolt.
+        if cooldown[classtable.LightningBolt].ready then
+            return classtable.LightningBolt
+        end
+        --Cast Flame Shock and if really needed Frost Shock while moving.
+        if cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        if talents[classtable.FrostShock] and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+    end
+    if not MaxDps.Tier or (MaxDps.Tier and MaxDps.Tier[31].count < 4) then
+        --Cast Primordial Wave whenever available.
+        if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
+            return classtable.PrimordialWave
+        end
+        --Apply or Refresh Flame Shock if it will expire in under 6 seconds, unless
+        --Primordial Wave will be available before or immediately after Flame Shock expires.
+        --a Surge of Power proc is available
+        if (not debuff[classtable.FlameShock] or debuff[classtable.FlameShock].duration <= 5 and cooldown[classtable.FlameShock].ready) or (talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].duration >= debuff[classtable.FlameShock].duration ) or buff[classtable.SurgeofPower].up then
+            return classtable.FlameShock
+        end
+        --Cast Fire Elemental if it is off cooldown. Always pair your Elemental with Haste buffs (e.g. Bloodlust/Heroism) if possible, but do not sacrifice an extra usage by delaying your elemental.
+        if talents[classtable.FireElemental] and cooldown[classtable.FireElemental].ready then
+            return classtable.FireElemental
+        end
+        --Cast Storm Elemental if it is off cooldown. Always pair your Elemental with Haste buffs (e.g. Bloodlust/Heroism) if possible, but do not sacrifice an extra usage by delaying your elemental.
+        if talents[classtable.StormElemental] and cooldown[classtable.StormElemental].ready then
+            return classtable.StormElemental
+        end
+        --Make your Fire Elemental cast Meteor.
+        --if talents[classtable.FireElemental] and cooldown[classtable.Meteor].ready then
+        --    return classtable.Meteor
+        --end
+        --Make your Storm Elemental cast Tempest once your Elemental has used Call Lightning (not before).
+        --if talents[classtable.StormElemental] and not cooldown[classtable.CallLightning].ready and cooldown[classtable.Tempest].ready then
+        --    return classtable.Tempest
+        --end
+        --Cast Lightning Bolt if Surge of Power is active.
+        if talents[classtable.SurgeofPower] and buff[classtable.SurgeofPower].up and cooldown[classtable.LightningBolt].ready then
+            return classtable.LightningBolt
+        end
+        --Cast Lava Burst whenever you gain a Lava Surge proc, even if doing so will make you overcap Maelstrom.
+        if talents[classtable.LavaBurst] and talents[classtable.LavaSurge] and buff[classtable.LavaSurgeBuff].up and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Ascendance.
+        if talents[classtable.Ascendance] and cooldown[classtable.Ascendance].ready then
+            return classtable.Ascendance
+        end
+        --When in Ascendance form cast Elemental Blast whenever available, but always alternate it with Lava Burst.
+        --When in Ascendance form, cast Lava Burst.
+        if talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.LavaBurst].ready then
+            return classtable.Ascendance
+        end
+        --When in Ascendance form, cast Lava Burst.
+        if talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.LavaBurst].ready then
+            return classtable.Ascendance
+        end
+        --Cast Stormkeeper whenever you have 81 or more Maelstrom. You must then cast the following spells in that order:
+        if talents[classtable.Stormkeeper] and maelstrom >= 81 and cooldown[classtable.Stormkeeper].ready then
+            return classtable.Stormkeeper
+        end
+            --Cast an Icefury-empowered Frost Shock
+            if talents[classtable.Stormkeeper] and buff[classtable.Icefury].up and cooldown[classtable.FrostShock].ready then
+                return classtable.FrostShock
+            end
+            --Cast Lava Burst
+            if talents[classtable.LavaBurst] and cooldown[classtable.LavaBurst].ready then
+                return classtable.LavaBurst
+            end
+            --Cast Elemental Blast
+            if talents[classtable.ElementalBlast] and maelstrom >= 90 and cooldown[classtable.ElementalBlast].ready then
+                return classtable.ElementalBlast
+            end
+            --Cast Lightning Bolt
+            if cooldown[classtable.LightningBolt].ready then
+                return classtable.LightningBolt
+            end
+            --Cast an Icefury-empowered Frost Shock
+            if talents[classtable.Stormkeeper] and buff[classtable.Icefury].up and cooldown[classtable.FrostShock].ready then
+                return classtable.FrostShock
+            end
+            --Cast Lava Burst
+            if talents[classtable.LavaBurst] and cooldown[classtable.LavaBurst].ready then
+                return classtable.LavaBurst
+            end
+            --Cast Elemental Blast
+            if talents[classtable.ElementalBlast] and maelstrom >= 90 and cooldown[classtable.ElementalBlast].ready then
+                return classtable.ElementalBlast
+            end
+            --Cast Lightning Bolt
+            if cooldown[classtable.LightningBolt].ready then
+                return classtable.LightningBolt
+            end
+        --Cast Lava Burst whenever you gain a Lava Surge proc.
+        if talents[classtable.LavaBurst] and talents[classtable.LavaSurge] and buff[classtable.LavaSurgeBuff].up and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Elemental Blast whenever you have the Maelstrom for it, but never cast it twice in a row. Use Nature's Swiftness when available to make it an instant cast.
+        if cooldown[classtable.ElementalBlast].ready and maelstrom >= 90 and cooldown[classtable.NaturesSwiftness].ready then
+            return classtable.NaturesSwiftness
+        end
+        if talents[classtable.ElementalBlast] and maelstrom >= 90 and cooldown[classtable.ElementalBlast].ready then
+            return classtable.ElementalBlast
+        end
+        --Cast Liquid Magma Totem whenever available. Delay the usage if multiple stacked targets will be present within the span of its cooldown.
+        if talents[classtable.LiquidMagmaTotem] and cooldown[classtable.LiquidMagmaTotem].ready then
+            return classtable.LiquidMagmaTotem
+        end
+        --Cast Elemental Blast if you have enough Maelstrom and the Master of the Elements buff is active.
+        if talents[classtable.ElementalBlast] and maelstrom >= 90 and buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.ElementalBlast].ready then
+            return classtable.ElementalBlast
+        end
+        --Cast Frost Shock if any Icefury buff is active and Electrified Shocks is absent or about to expire.
+        if talents[classtable.FrostShock] and buff[classtable.Icefury].up and (not buff[classtable.ElectrifiedShocks].up or buff[classtable.ElectrifiedShocks].duration <= 2) and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+        --Cast Lava Burst whenever available.
+        if talents[classtable.LavaBurst] and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Icefury.
+        if talents[classtable.Icefury] and cooldown[classtable.Icefury].ready then
+            return classtable.Icefury
+        end
+        --Cast Lightning Bolt if Storm Elemental is active.
+        if buff[classtable.StormElemental].up and cooldown[classtable.LightningBolt].ready then
+            return classtable.LightningBolt
+        end
+        --Cast Lightning Lasso
+        if talents[classtable.LightningLasso] and cooldown[classtable.LightningLasso].ready then
+            return classtable.LightningLasso
+        end
+        --Cast Lightning Bolt as a filler on a single target.
+        if cooldown[classtable.LightningBolt].ready then
+            return classtable.LightningBolt
+        end
+        --Cast Flame Shock as a filler while moving, unless Primordial Wave will become available
+        if cooldown[classtable.PrimordialWave].duration >=2 and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Frost Shock as a filler while moving.
+        if cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+    end
 end
 
-function Shaman:ElementalStormkeeper()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local talents = fd.talents;
-	local debuff = fd.debuff;
-	local buff = fd.buff;
-	local maelstrom = fd.maelstrom;
-	local gcd = fd.gcd;
-	local elementalBlastCost = fd.elementalBlastCost;
-	local currentSpell = fd.currentSpell;
-
-	if not debuff[EL.ElectrifiedShocksDebuff].up and talents[EL.Icefury] and currentSpell ~= EL.Icefury and cooldown[EL.Icefury].ready then
-		return EL.Icefury
-	end
-
-	if buff[EL.Icefury].up and (not debuff[EL.ElectrifiedShocksDebuff].up or debuff[EL.ElectrifiedShocksDebuff].remains < 2 * gcd) then
-		return EL.FrostShock
-	end
-
-	if talents[EL.LavaBurst] and cooldown[EL.LavaBurst].ready and currentSpell ~= EL.LavaBurst then
-		return EL.LavaBurst;
-	end
-
-	if talents[EL.ElementalBlast] and cooldown[EL.ElementalBlast].ready and currentSpell ~= EL.ElementalBlast and maelstrom >= elementalBlastCost then
-		return EL.ElementalBlast;
-	end
-
-	return EL.LightningBolt
+function Shaman:ElementalMultiTarget()
+    if not MaxDps.Tier or (MaxDps.Tier and MaxDps.Tier[31].count < 4) then
+        --Cast Fire Elemental.
+        if talents[classtable.FireElemental] and cooldown[classtable.FireElemental].ready then
+            return classtable.FireElemental
+        end
+        --Cast Storm Elemental.
+        if talents[classtable.StormElemental] and cooldown[classtable.StormElemental].ready then
+            return classtable.StormElemental
+        end
+        --Cast Meteor.
+        --if talents[classtable.FireElemental] and cooldown[classtable.Meteor].ready then
+        --    return classtable.Meteor
+        --end
+        --Cast Tempest once your Elemental has used Call Lightning (not before).
+        --if talents[classtable.StormElemental] and not cooldown[classtable.CallLightning].ready and cooldown[classtable.Tempest].ready then
+        --    return classtable.Tempest
+        --end
+        --When your Fire Elemental is out, cast Flame Shock on targets unafflicted by it on cooldown as long as they will live for most of the duration.
+        if buff[classtable.FireElemental].up and not debuff[classtable.FireElemental].up and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Liquid Magma Totem then cast Primordial Wave and Flame Shock on targets not afflicted by the Flame Shock DoT. If there is no such 5th target for your Flame Shock, skip that last cast. Follow this with a Lava Burst. Use Totemic Recall before using another totem to have Liquid Magma Totem back faster.
+        if talents[classtable.LiquidMagmaTotem] and cooldown[classtable.LiquidMagmaTotem].ready then
+            return classtable.LiquidMagmaTotem
+        end
+        if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
+            return classtable.PrimordialWave
+        end
+        if buff[classtable.FireElemental].up and not debuff[classtable.FlameShock].up and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Stormkeeper on cooldown unless there are 6+ targets, in which case, you want to have enough Maelstrom to immediately cast the next appropriate spender.
+        if talents[classtable.Stormkeeper] and maelstrom >= 81 and targets <= 6 and cooldown[classtable.Stormkeeper].ready then
+            return classtable.Stormkeeper
+        end
+        --If all targets are split, keep Flame Shock up on as many of them as you can as long as they will live for the whole duration.
+        if not debuff[classtable.FlameShock].up and timetodie >= 6 and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --If no more than 3 targets are cleavable and they will not die soon, try using your Surge of Power procs with Flame Shock.
+        if targets <= 3 and timetodie >= 6 and buff[classtable.SurgeofPower].up and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --If no more than 2 targets are cleavable and will either die soon or have a long duration Flame Shocks on them, try using your Surge of Power procs with Lightning Bolt. This is also valid if there is a priority target in a 3-target cleave situation.
+        if targets <= 2 and (timetodie <= 6 or debuff[classtable.FlameShock].duration >= 10) and buff[classtable.SurgeofPower].up and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Lava Burst if Lava Surge is up.
+        if talents[classtable.LavaBurst] and talents[classtable.LavaSurge] and buff[classtable.LavaSurgeBuff].up and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Elemental Blast to empower your next Earthquake with Echoes of Great Sundering.
+        if talents[classtable.ElementalBlast] and maelstrom >= 90 and cooldown[classtable.ElementalBlast].ready then
+            return classtable.ElementalBlast
+        end
+        --Cast Earthquake.
+        if talents[classtable.Earthquake] and maelstrom >= 60 and cooldown[classtable.Earthquake].ready then
+            return classtable.Earthquake
+        end
+        --Cast Lava Beam when in Ascendance form if Power of the Maelstrom is available.
+        --Cast Lava Beam when in Ascendance form if Power of the Maelstrom is available.
+        if MaxDps:FindSpell(classtable.LavaBeam) and (talents[classtable.Ascendance] and buff[classtable.Ascendance].up and talents[classtable.PowerofTheMaelstrom] and buff[classtable.PowerofTheMaelstromBuff].up and cooldown[classtable.LavaBeam].ready) then
+            return classtable.LavaBeam
+        end
+        --Cast Lava Beam when in Ascendance form if Master of the Elements is available.
+        --Cast Lava Beam when in Ascendance form if Master of the Elements is available.
+        if MaxDps:FindSpell(classtable.LavaBeam) and (talents[classtable.Ascendance] and buff[classtable.Ascendance].up and talents[classtable.MasteroftheElements] and buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.LavaBeam].ready) then
+            return classtable.LavaBeam
+        end
+        --Cast Chain Lightning if Power of the Maelstrom is available.
+        if MaxDps:FindSpell(classtable.ChainLightning) and (talents[classtable.PowerofTheMaelstrom] and buff[classtable.PowerofTheMaelstromBuff].up and cooldown[classtable.ChainLightning].ready) then
+            return classtable.ChainLightning
+        end
+        --Cast Lava Burst if there are 3 or fewer targets, and if a Flame Shock is up, ideally right before using Stormkeeper-boosted abilities, or an Echoes of Great Sundering Earthquake.
+        if talents[classtable.LavaBurst] and targets <= 3 and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Lava Beam when in Ascendance form.
+        --Cast Lava Beam when in Ascendance form.
+        if MaxDps:FindSpell(classtable.LavaBeam) and (talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.LavaBeam].ready) then
+            return classtable.LavaBeam
+        end
+        --Cast Icefury on cooldown. If there are more than 4 targets and you will not need to move, you can skip this.
+        if talents[classtable.Icefury] and targets < 4 and cooldown[classtable.Icefury].ready then
+            return classtable.Icefury
+        end
+        --Use an Icefury-empowered Frost Shock if the Electrified Shocks debuff is not present or will expire before the next cast. If there are many targets, you will not need to move, and Stormkeeper will not be used; you can skip this.
+        if talents[classtable.Icefury] and (not debuff[classtable.ElectrifiedShocks].up or debuff[classtable.ElectrifiedShocks].duration <= 2) and cooldown[classtable.Icefury].ready then
+            return classtable.Icefury
+        end
+        --Cast Chain Lightning.
+        if MaxDps:FindSpell(classtable.ChainLightning) and cooldown[classtable.ChainLightning].ready then
+            return classtable.ChainLightning
+        end
+        --Cast Flame Shock when moving
+        if cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+    end
+    if MaxDps.Tier and MaxDps.Tier[31].count >= 4 then
+        --Cast Fire Elemental if Ascendance is not up.
+        if talents[classtable.FireElemental] and talents[classtable.Ascendance] and not buff[classtable.Ascendance].up and cooldown[classtable.FireElemental].ready then
+            return classtable.FireElemental
+        end
+        --Cast Stormkeeper if Ascendance is up and a previous Stormkeeper buff is not available (for people still using Shaman Elemental 10.1 Class Set 2pc Shaman Elemental 10.1 Class Set 2pc).
+        if talents[classtable.FireElemental] and talents[classtable.Ascendance] and buff[classtable.Ascendance].up and not buff[classtable.Stormkeeper].up and cooldown[classtable.Stormkeeper].ready then
+            return classtable.Stormkeeper
+        end
+        --Cast Totemic Recall if Ascendance is not up and Liquid Magma Totem is on cooldown for a long time, depending on how long adds will live.
+        --Cast Liquid Magma Totem if Ascendance is not up.
+        if talents[classtable.LiquidMagmaTotem] and talents[classtable.Ascendance] and not buff[classtable.Ascendance].up and cooldown[classtable.LiquidMagmaTotem].ready then
+            return classtable.LiquidMagmaTotem
+        end
+        --Cast Primordial Wave on whichever target is closest to losing the Flame Shock effect, unless it is close to dying.
+        if talents[classtable.PrimordialWave] and timetodie >= 6 and cooldown[classtable.PrimordialWave].ready then
+            return classtable.PrimordialWave
+        end
+        --If specced into Surge of Power, cast Flame Shock when it is up on whichever target has the lowest duration Flame Shock effect, unless it is close to dying.
+        if talents[classtable.SurgeofPower] and timetodie >= 6 and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Lava Beam if Ascendance and Master of the Elements are up.
+        if MaxDps:FindSpell(classtable.LavaBeam) and (talents[classtable.Ascendance] and buff[classtable.Ascendance].up and talents[classtable.MasteroftheElements] and buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.LavaBeam].ready) then
+            return classtable.LavaBeam
+        end
+        --Cast Lava Burst if Ascendance is up.
+        if talents[classtable.LavaBurst] and talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Earthquake if Master of the Elements is up, you have 15 or more stacks of Magma Chamber and Lava Surge is not up
+        if talents[classtable.Earthquake] and talents[classtable.MasteroftheElements] and buff[classtable.MasteroftheElementsBuff].up and buff[classtable.MagmaChamber].count >= 15 and not buff[classtable.LavaSurgeBuff].up and maelstrom >= 60 and cooldown[classtable.Earthquake].ready then
+            return classtable.Earthquake
+        end
+        --Cast Chain Lightning if Master of the Elements is up but neither Ascendance or Lava Surge are up
+        if MaxDps:FindSpell(classtable.ChainLightning) and (talents[classtable.MasteroftheElements] and buff[classtable.MasteroftheElementsBuff].up and ((talents[classtable.Ascendance] and not buff[classtable.Ascendance].up) and not buff[classtable.LavaSurgeBuff].up) and cooldown[classtable.ChainLightning].ready) then
+            return classtable.ChainLightning
+        end
+        --Cast Lava Burst.
+        if talents[classtable.LavaBurst] and cooldown[classtable.LavaBurst].ready then
+            return classtable.LavaBurst
+        end
+        --Cast Earthquake.
+        if talents[classtable.Earthquake] and maelstrom >= 60 and cooldown[classtable.Earthquake].ready then
+            return classtable.Earthquake
+        end
+        --Cast Chain Lightning.
+        if MaxDps:FindSpell(classtable.ChainLightning) and cooldown[classtable.ChainLightning].ready then
+            return classtable.ChainLightning
+        end
+        --Cast Flame Shock on whichever target is closest to losing its DoT effect.
+        if cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+    end
 end

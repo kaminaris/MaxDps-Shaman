@@ -1,443 +1,319 @@
-local _, addonTable = ...;
+
+local _, addonTable = ...
 
 --- @type MaxDps
-if not MaxDps then
-	return
-end
-local MaxDps = MaxDps;
-local UnitPower = UnitPower;
-local GetTotemInfo = GetTotemInfo;
-local GetTime = GetTime;
+if not MaxDps then return end
 
-local Necrolord = Enum.CovenantType.Necrolord;
-local Venthyr = Enum.CovenantType.Venthyr;
-local NightFae = Enum.CovenantType.NightFae;
-local Kyrian = Enum.CovenantType.Kyrian;
+local Shaman = addonTable.Shaman
+local MaxDps = MaxDps
+local UnitPower = UnitPower
+local UnitHealth = UnitHealth
+local UnitAura = UnitAura
+local GetSpellDescription = GetSpellDescription
+local UnitHealthMax = UnitHealthMax
+local UnitPowerMax = UnitPowerMax
+local PowerTypeMaelstrom = Enum.PowerType.Maelstrom
 
-local Shaman = addonTable.Shaman;
+local fd
+local cooldown
+local buff
+local debuff
+local talents
+local targets
+local maelstrom
+local targetHP
+local targetmaxHP
+local targethealthPerc
+local curentHP
+local maxHP
+local healthPerc
 
-local EH = {
-	Ascendance = 114051,
-	AshenCatalyst = 390371,
-	ChainHarvest = 320674,
-	ChainLightning = 188443,
-	ChainLightningBuff = 333964,
-	CrashLightning = 187874,
-	DeeplyRootedElements = 378270,
-	DoomWinds = 384352,
-	EarthElemental = 198103,
-	ElementalBlast = 117014,
-	FaeTransfusion = 328928,
-	FeralSpirit = 51533,
-	FeralSpiritBuff = 333957,
-	FireNova = 333974,
-	FlameShock = 188389,
-	FlametongueWeapon = 318038,
-	FlametongueWeaponEnchantID = 5400,
-	FrostShock = 196840,
-	GatheringStorms = 384363,
-	HailstormBuff = 334196,
-	HotHand = 201900,
-	IceStrike = 342240,
-	LashingFlamesDebuff = 334168,
-	LavaBurst = 51505,
-	LavaLash = 60103,
-	LegacyOfTheFrostWitchBuff = 384451,
-	LightningBolt = 188196,
-	LightningShield = 192106,
-	MaelstromWeapon = 344179,
-	MoltenWeapon = 224125,
-	NecrolordPrimordialWave = 326059,
-	PrimordialWave = 375982,
-	PrimordialWaveBuff = 375986,
-	Stormbringer = 201845,
-	Stormstrike = 17364,
-	Sundering = 197214,
-	SwirlingMaelstrom = 384359,
-	ThorimsInvocation = 384444,
-	VesperTotem = 324386,
-	WindfuryTotem = 8512,
-	WindfuryWeapon = 33757,
-	WindfuryWeaponEnchantID = 5401,
-	Windstrike = 115356
-};
-
-setmetatable(EH, Shaman.spellMeta);
-
-local TotemIcons = {
-	[136114] = 'Windfury'
-}
+local className, classFilename, classId = UnitClass('player')
+local currentSpec = GetSpecialization()
+local currentSpecName = currentSpec and select(2, GetSpecializationInfo(currentSpec)) or "None"
+local classtable
 
 function Shaman:Enhancement()
-	local fd = MaxDps.FrameData;
-	local targets = MaxDps:SmartAoe();
-	fd.totems = Shaman:Totems();
-
-	Shaman:EnhancementCooldowns()
-
-	if targets <= 1 then
-		return Shaman:EnhancementSingle();
-	else
-		return Shaman:EnhancementAoe();
-	end
+    fd = MaxDps.FrameData
+    cooldown = fd.cooldown
+    buff = fd.buff
+    debuff = fd.debuff
+    talents = fd.talents
+    targets = MaxDps:SmartAoe()
+    maelstrom = UnitPower('player', PowerTypeMaelstrom)
+    targetHP = UnitHealth('target')
+    targetmaxHP = UnitHealthMax('target')
+    targethealthPerc = (targetHP / targetmaxHP) * 100
+    curentHP = UnitHealth('player')
+    maxHP = UnitHealthMax('player')
+    healthPerc = (curentHP / maxHP) * 100
+    classtable = MaxDps.SpellTable
+    classtable.WindfuryTotemBuff = 327942
+    classtable.PrimordialWaveBuff = 375986
+    classtable.MaelstromWeaponBuff = 344179
+    setmetatable(classtable, Shaman.spellMeta)
+    if targets > 1  then
+        return Shaman:EnhancementMultiTarget()
+    end
+    return Shaman:EnhancementSingleTarget()
 end
 
-function Shaman:EnhancementCooldowns()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local talents = fd.talents;
-	local buff = fd.buff;
-	local inCombat = UnitAffectingCombat("player");
+--optional abilities list
 
-	-- feral_spirit;
-	if talents[EH.FeralSpirit] then
-		MaxDps:GlowCooldown(EH.FeralSpirit, cooldown[EH.FeralSpirit].ready);
-	end
 
-	local hasMainHandEnchant, mainHandExpiration, _, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, _, offHandEnchantID = GetWeaponEnchantInfo();
-	local windfuryEnchantRemaining = false;
-	local flametongueEnchantRemaining = false;
+--Single-Target Rotation
+function Shaman:EnhancementSingleTarget()
+    --Cast Windstrike on cooldown during Ascendance.
+    if MaxDps:FindSpell(classtable.Windstrike) and talents[classtable.DeeplyRootedElements] and buff[classtable.Ascendance].up and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    --Cast Primordial Wave Icon Primordial Wave whenever available. With Tier 31 
+    if MaxDps.Tier and MaxDps.Tier[31].count >= 2 and talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
+        return classtable.PrimordialWave
+    end
+    --Cast Feral Spirit.
+    if talents[classtable.FeralSpirit] and cooldown[classtable.FeralSpirit].ready then
+        return classtable.FeralSpirit
+    end
+    --Cast Primordial Wave or Flame Shock if it is not active on your target.
+    if talents[classtable.PrimordialWave] and not debuff[classtable.PrimordialWaveBuff].up and cooldown[classtable.PrimordialWave].ready then
+        return classtable.PrimordialWave
+    end
+    if debuff[classtable.FlameShock].up and cooldown[classtable.FlameShock].ready then
+        return classtable.FlameShock
+    end
+    --Cast Windfury Totem if not currently active.
+    if talents[classtable.WindfuryTotem] and not buff[classtable.WindfuryTotemBuff].up and cooldown[classtable.WindfuryTotem].ready then
+        return classtable.WindfuryTotem
+    end
+    --Cast Ascendance.
+    if talents[classtable.Ascendance] and cooldown[classtable.Ascendance].ready then
+        return classtable.Ascendance
+    end
+    --Cast Doom Winds.
+    if talents[classtable.DoomWinds] and cooldown[classtable.DoomWinds].ready then
+        return classtable.DoomWinds
+    end
+    --Cast Sundering to trigger the T30 bonus.
+    if MaxDps.Tier and MaxDps.Tier[30].count >= 2 and talents[classtable.Sundering] and cooldown[classtable.Sundering].ready then
+        return classtable.Sundering
+    end
+    --Cast Windstrike on cooldown with Ascendance active.
+    if MaxDps:FindSpell(classtable.Windstrike) and talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    --Cast Lava Lash if Hot Hand is active.
+    if talents[classtable.LavaLash] and talents[classtable.HotHand] and buff[classtable.HotHand].up and cooldown[classtable.LavaLash].ready then
+        return classtable.LavaLash
+    end
+    --Cast Elemental Blast with 5+ Maelstrom Weapon stacks and are at two charges.
+    if maelstrom >= 90 and talents[classtable.ElementalBlast] and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 5 and cooldown[classtable.ElementalBlast].charges == 2 and cooldown[classtable.ElementalBlast].ready then
+        return classtable.ElementalBlast
+    end
+    --Cast Elemental Blast with 8+ Maelstrom Weapon stacks and Feral Spirit active.
+    if maelstrom >= 90 and talents[classtable.ElementalBlast] and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 8 and buff[classtable.FeralSpirit].up and cooldown[classtable.ElementalBlast].ready then
+        return classtable.ElementalBlast
+    end
+    --Cast Lightning Bolt with 5+ Maelstrom Weapon stacks.
+    if buff[classtable.MaelstromWeaponBuff].count >= 5 and cooldown[classtable.LightningBolt].ready then
+        return classtable.LightningBolt
+    end
+    --Cast Ice Strike with Doom Winds active.
+    if talents[classtable.IceStrike] and talents[classtable.DoomWinds] and cooldown[classtable.IceStrike].ready then
+        return classtable.IceStrike
+    end
+    --Cast Sundering with Doom Winds active.
+    if talents[classtable.Sundering] and talents[classtable.DoomWinds] and buff[classtable.DoomWinds].up and cooldown[classtable.Sundering].ready then
+        return classtable.Sundering
+    end
+    --Cast Crash Lightning with Doom Winds active.
+    if talents[classtable.CrashLightning] and talents[classtable.DoomWinds] and buff[classtable.DoomWinds].up and cooldown[classtable.CrashLightning].ready then
+        return classtable.CrashLightning
+    end
+    --Cast Primordial Wave.
+    if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
+        return classtable.PrimordialWave
+    end
 
-	if hasMainHandEnchant then
-		if mainHandEnchantID == EH.WindfuryWeaponEnchantID then
-			windfuryEnchantRemaining = mainHandExpiration / 1000;
-		elseif mainHandEnchantID == EH.FlametongueWeaponEnchantID then
-			flametongueEnchantRemaining = mainHandExpiration / 1000;
-		end
-	end
+    if talents[classtable.Hailstorm] then
+        --Cast Ice Strike.
+        if talents[classtable.IceStrike] and cooldown[classtable.IceStrike].ready then
+            return classtable.IceStrike
+        end
+        --Cast Lava Lash.
+        if talents[classtable.LavaLash] and cooldown[classtable.LavaLash].ready then
+            return classtable.LavaLash
+        end
+        --Cast Frost Shock if you have Hailstorm stacks.
+        if talents[classtable.FrostShock] and talents[classtable.Hailstorm] and buff[classtable.Hailstorm].up and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+        --Cast Stormstrike.
+        if MaxDps:FindSpell(classtable.Stormstrike) and talents[classtable.Stormstrike] and cooldown[classtable.Stormstrike].ready then
+            return classtable.Stormstrike
+        end
+        --Cast Sundering.
+        if talents[classtable.Sundering] and cooldown[classtable.Sundering].ready then
+            return classtable.Sundering
+        end
+    end
 
-	if hasOffHandEnchant then
-		if offHandEnchantID == EH.WindfuryWeaponEnchantID then
-			windfuryEnchantRemaining = offHandExpiration / 1000;
-		elseif offHandEnchantID == EH.FlametongueWeaponEnchantID then
-			flametongueEnchantRemaining = offHandExpiration / 1000;
-		end
-	end
+    if not talents[classtable.Hailstorm] then
+        --Cast Lava Lash.
+        if talents[classtable.LavaLash] and cooldown[classtable.LavaLash].ready then
+            return classtable.LavaLash
+        end
+        --Cast Stormstrike.
+        if MaxDps:FindSpell(classtable.Stormstrike) and talents[classtable.Stormstrike] and cooldown[classtable.Stormstrike].ready then
+            return classtable.Stormstrike
+        end
+        --Cast Sundering.
+        if talents[classtable.Sundering] and cooldown[classtable.Sundering].ready then
+            return classtable.Sundering
+        end
+        --Cast Ice Strike.
+        if talents[classtable.IceStrike] and cooldown[classtable.IceStrike].ready then
+            return classtable.IceStrike
+        end
+        --Cast Fire Nova.
+        if talents[classtable.FireNova] and cooldown[classtable.FireNova].ready then
+            return classtable.FireNova
+        end
+        --Cast Frost Shock to fill.
+        if talents[classtable.FrostShock] and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
+    end
 
-	if talents[EH.EarthElemental] then
-		MaxDps:GlowCooldown(EH.EarthElemental, cooldown[EH.EarthElemental].ready);
-	end
-
-	if talents[EH.WindfuryWeapon] then
-		MaxDps:GlowCooldown(EH.WindfuryWeapon, not windfuryEnchantRemaining or (not inCombat and windfuryEnchantRemaining <= 300));
-	end
-	MaxDps:GlowCooldown(EH.FlametongueWeapon, not flametongueEnchantRemaining or (not inCombat and flametongueEnchantRemaining <= 300));
-	MaxDps:GlowCooldown(EH.LightningShield, not buff[EH.LightningShield].up or (not inCombat and buff[EH.LightningShield].remains <= 300));
-
-	if talents[EH.Ascendance] then
-		MaxDps:GlowCooldown(EH.Ascendance, cooldown[EH.Ascendance].ready);
-	end
-
-	if talents[EH.DoomWinds] then
-		MaxDps:GlowCooldown(EH.DoomWinds, cooldown[EH.DoomWinds].ready);
-	end
-
-	local covenantId = fd.covenant.covenantId;
-
-	if covenantId == NightFae then
-		MaxDps:GlowCooldown(EH.FaeTransfusion, cooldown[EH.FaeTransfusion].ready);
-	end
-
-	if covenantId == Necrolord then
-		MaxDps:GlowCooldown(EH.NecrolordPrimordialWave, cooldown[EH.NecrolordPrimordialWave].ready);
-	end
-
-	if covenantId == Kyrian then
-		MaxDps:GlowCooldown(EH.VesperTotem, cooldown[EH.VesperTotem].ready);
-	end
-
-	if covenantId == Venthyr then
-		MaxDps:GlowCooldown(EH.ChainHarvest, cooldown[EH.ChainHarvest].ready and buff[EH.MaelstromWeapon].count >= 5);
-	end
+    --Cast Crash Lightning to fill.
+    if talents[classtable.CrashLightning] and cooldown[classtable.CrashLightning].ready then
+        return classtable.CrashLightning
+    end
+    --Refresh Flame Shock to fill.
+    if cooldown[classtable.FlameShock].ready then
+        return classtable.FlameShock
+    end
+    --Refresh Windfury Totem to fill.
+    if talents[classtable.WindfuryTotem] and not buff[classtable.WindfuryTotemBuff].up and cooldown[classtable.WindfuryTotem].ready then
+        return classtable.WindfuryTotem
+    end
 end
 
-function Shaman:EnhancementAoe()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local buff = fd.buff;
-	local debuff = fd.debuff;
-
-	local talents = fd.talents;
-	local totems = fd.totems;
-	local activeFlameShock = MaxDps:DebuffCounter(EH.FlameShock, fd.timeShift);
-
-	if talents[EH.WindfuryTotem] and totems.Windfury <= 10 then
-		return EH.WindfuryTotem;
-	end
-
-	if cooldown[EH.FlameShock].ready and not debuff[EH.FlameShock].up and activeFlameShock < 6 then
-		return EH.FlameShock;
-	end
-
-	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up then
-		return EH.LightningBolt;
-	end
-
-	if buff[EH.MaelstromWeapon].count == 10 and talents[EH.ChainLightning] then
-		return EH.ChainLightning;
-	end
-
-	if talents[EH.DoomWinds] and cooldown[EH.DoomWinds].ready then
-		return EH.DoomWinds;
-	end
-
-	if buff[EH.DoomWinds].up then
-		if talents[EH.CrashLightning] and cooldown[EH.CrashLightning].ready then
-			return EH.CrashLightning;
-		end
-
-		if talents[EH.Sundering] and cooldown[EH.Sundering].ready then
-			return EH.Sundering;
-		end
-	end
-
-	if talents[EH.FireNova] and cooldown[EH.FireNova].ready and activeFlameShock == 6 then
-		return EH.FireNova;
-	end
-
-	if talents[EH.IceStrike] and cooldown[EH.IceStrike].ready then
-		return EH.IceStrike;
-	end
-
-	if talents[EH.FrostShock] and cooldown[EH.FrostShock].ready and buff[EH.HailstormBuff].up then
-		return EH.FrostShock;
-	end
-
-	if talents[EH.Sundering] and cooldown[EH.Sundering].ready and (buff[EH.LegacyOfTheFrostWitchBuff].up or buff[EH.MoltenWeapon].up) then
-		return EH.Sundering;
-	end
-
-	if talents[EH.CrashLightning] and cooldown[EH.CrashLightning].ready and not buff[EH.CrashLightning].up then
-		return EH.CrashLightning;
-	end
-
-	local Windstrike = MaxDps:FindSpell(EH.Windstrike) and EH.Windstrike or nil;
-	if Windstrike and buff[EH.Ascendance].up and cooldown[Windstrike].ready and talents[EH.ThorimsInvocation] then
-		return Windstrike;
-	end
-
-	if talents[EH.PrimordialWave] and cooldown[EH.PrimordialWave].ready then
-		return EH.PrimordialWave;
-	end
-
-	if cooldown[EH.FlameShock].ready and not debuff[EH.FlameShock].up then
-		return EH.FlameShock;
-	end
-
-	if talents[EH.DeeplyRootedElements] then
-		if Windstrike and buff[EH.Ascendance].up and cooldown[EH.Windstrike].ready then
-			return Windstrike;
-		end
-
-		if talents[EH.Stormstrike] and cooldown[EH.Stormstrike].ready then
-			return EH.Stormstrike;
-		end
-	end
-
-	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready and not debuff[EH.LashingFlamesDebuff].up then
-		return EH.LavaLash;
-	end
-
-	if buff[EH.ChainLightningBuff].up and talents[EH.CrashLightning] and cooldown[EH.CrashLightning].ready then
-		return EH.CrashLightning;
-	end
-
-	if talents[EH.Sundering] and cooldown[EH.Sundering].ready then
-		return EH.Sundering;
-	end
-
-	if talents[EH.FireNova] and cooldown[EH.FireNova].ready and activeFlameShock >= 4 then
-		return EH.FireNova;
-	end
-
-	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready then
-		return EH.LavaLash;
-	end
-
-	if talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready
-			and buff[EH.MaelstromWeapon].count >= 5
-			and buff[EH.FeralSpiritBuff].up then
-		return EH.ElementalBlast;
-	end
-
-	if Windstrike and buff[EH.Ascendance].up and cooldown[EH.Windstrike].ready then
-		return Windstrike;
-	end
-
-	if talents[EH.Stormstrike] and cooldown[EH.Stormstrike].ready then
-		return EH.Stormstrike;
-	end
-
-	if talents[EH.CrashLightning] and cooldown[EH.CrashLightning].ready then
-		return EH.CrashLightning;
-	end
-
-	if talents[EH.FireNova] and cooldown[EH.FireNova].ready and activeFlameShock >= 2 then
-		return EH.FireNova;
-	end
-
-	if talents[EH.ChainLightning] and buff[EH.MaelstromWeapon].count >= 5 then
-		return EH.ChainLightning;
-	end
-
-	if talents[EH.FrostShock] and cooldown[EH.FrostShock].ready then
-		return EH.FrostShock;
-	end
-
-	if talents[EH.WindfuryTotem] then
-		return EH.WindfuryTotem;
-	end
-end
-
-function Shaman:EnhancementSingle()
-	local fd = MaxDps.FrameData;
-	local cooldown = fd.cooldown;
-	local buff = fd.buff;
-	local debuff = fd.debuff;
-	local talents = fd.talents;
-	local totems = fd.totems;
-
-	if talents[EH.WindfuryTotem] and totems.Windfury <= 10 then
-		return EH.WindfuryTotem;
-	end
-
-	local Windstrike = MaxDps:FindSpell(EH.Windstrike) and EH.Windstrike or nil;
-	if Windstrike and buff[EH.Ascendance].up and cooldown[Windstrike].ready then
-		return Windstrike;
-	end
-
-	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready and (buff[EH.HotHand].up or buff[EH.AshenCatalyst].count > 6) then
-		return EH.LavaLash
-	end
-
-	if buff[EH.DoomWinds].up then
-		if talents[EH.IceStrike] and cooldown[EH.IceStrike].ready then
-			return EH.IceStrike;
-		end
-
-		if talents[EH.Stormstrike] and cooldown[EH.Stormstrike].ready then
-			return EH.Stormstrike;
-		end
-
-		if talents[EH.CrashLightning] and cooldown[EH.CrashLightning].ready then
-			return EH.CrashLightning;
-		end
-
-		if talents[EH.Sundering] and cooldown[EH.Sundering].ready then
-			return EH.Sundering;
-		end
-	end
-
-	if cooldown[EH.FlameShock].ready and not debuff[EH.FlameShock].up then
-		return EH.FlameShock;
-	end
-
-	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.PrimordialWaveBuff].up then
-		return EH.LightningBolt;
-	end
-
-	if talents[EH.PrimordialWave] and not buff[EH.PrimordialWaveBuff].up and cooldown[EH.PrimordialWave].ready then
-		return EH.PrimordialWave
-	end
-
-	if buff[EH.MaelstromWeapon].count >= 5 and buff[EH.FeralSpiritBuff].up then
-		if talents[EH.ElementalBlast] then
-			if cooldown[EH.ElementalBlast].ready then return EH.ElementalBlast end;
-		elseif talents[EH.LavaBurst] then
-			if cooldown[EH.LavaBurst].ready then return EH.LavaBurst end;
-		end
-	end
-
-	if talents[EH.Sundering] and cooldown[EH.Sundering].ready and (buff[EH.LegacyOfTheFrostWitchBuff].up or buff[EH.MoltenWeapon].up) then
-		return EH.Sundering;
-	end
-
-	if talents[EH.IceStrike] and cooldown[EH.IceStrike].ready then
-		return EH.IceStrike;
-	end
-
-	if talents[EH.FrostShock] and cooldown[EH.FrostShock].ready and buff[EH.HailstormBuff].up then
-		return EH.FrostShock;
-	end
-
-	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready and debuff[EH.FlameShock].refreshable then
-		return EH.LavaLash;
-	end
-
-	if talents[EH.Stormstrike] and cooldown[EH.Stormstrike].ready and buff[EH.Stormbringer].up then
-		return EH.Stormstrike;
-	end
-
-	if buff[EH.MaelstromWeapon].count >= 5 then
-		if talents[EH.ElementalBlast] then
-			if cooldown[EH.ElementalBlast].ready and cooldown[EH.ElementalBlast].charges == cooldown[EH.ElementalBlast].maxCharges then
-				return EH.ElementalBlast
-			end
-		elseif talents[EH.LavaBurst] and cooldown[EH.LavaBurst].ready then
-			return EH.LavaBurst;
-		end
-	end
-
-	if buff[EH.MaelstromWeapon].count == 10 then
-		if talents[EH.ElementalBlast] and cooldown[EH.ElementalBlast].ready then
-			return EH.ElementalBlast;
-		end
-		return EH.LightningBolt;
-	end
-
-	if talents[EH.Stormstrike] and cooldown[EH.Stormstrike].ready then
-		return EH.Stormstrike;
-	end
-
-	if talents[EH.LavaLash] and cooldown[EH.LavaLash].ready then
-		return EH.LavaLash;
-	end
-
-	if buff[EH.MaelstromWeapon].count == 5 then
-		return EH.LightningBolt;
-	end
-
-	if talents[EH.Sundering] and cooldown[EH.Sundering].ready and talents[EH.LavaLash] and cooldown[EH.LavaLash].ready then
-		return EH.LavaLash;
-	end
-
-	if talents[EH.SwirlingMaelstrom] and talents[EH.FireNova] and cooldown[EH.FireNova].ready and debuff[EH.FlameShock].up then
-		return EH.FireNova;
-	end
-
-	if talents[EH.FrostShock] and cooldown[EH.FrostShock].ready then
-		return EH.FrostShock;
-	end
-
-	if talents[EH.CrashLightning] and cooldown[EH.CrashLightning].ready then
-		return EH.CrashLightning;
-	end
-
-	if talents[EH.FireNova] and debuff[EH.FlameShock].up and cooldown[EH.FireNova].ready then
-		return EH.FireNova;
-	end
-
-	if cooldown[EH.FlameShock].ready then
-		return EH.FlameShock;
-	end
-end
-
-
-function Shaman:Totems()
-	local pets = {
-		Windfury = 0,
-	};
-
-	for index = 1, MAX_TOTEMS do
-		local hasTotem, _, startTime, duration, icon = GetTotemInfo(index);
-		if hasTotem then
-			local totemUnifiedName = TotemIcons[icon];
-			if totemUnifiedName then
-				local remains = startTime + duration - GetTime();
-				pets[totemUnifiedName] = remains;
-			end
-		end
-	end
-
-	return pets;
+--Multiple-Target Rotation
+function Shaman:EnhancementMultiTarget()
+    if MaxDps.Tier and MaxDps.Tier[31].count >= 2 then
+        --Cast Primordial Wave whenever available.
+        if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
+            return classtable.PrimordialWave
+        end
+        --Cast Feral Spirit.
+        if talents[classtable.FeralSpirit] and cooldown[classtable.FeralSpirit].ready then
+            return classtable.FeralSpirit
+        end
+        --Cast Lava Lash with Flame Shock active and you have less than 6 active Flame Shocks.
+        if talents[classtable.LavaLash] and debuff[classtable.FlameShock].up and cooldown[classtable.LavaLash].ready then
+            return classtable.LavaLash
+        end
+        --Cast Flame Shock on an unaffected target if you have less than 6 active.
+        if not debuff[classtable.FlameShock].up and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+    end
+    if not MaxDps.Tier or (MaxDps.Tier and MaxDps.Tier[31].count < 2) then
+        --Cast Feral Spirit.
+        if talents[classtable.FeralSpirit] and cooldown[classtable.FeralSpirit].ready then
+            return classtable.FeralSpirit
+        end
+        --Cast Lava Lash with Flame Shock active and you have less than 6 active Flame Shocks.
+        if talents[classtable.LavaLash] and debuff[classtable.FlameShock].up and cooldown[classtable.LavaLash].ready then
+            return classtable.LavaLash
+        end
+        --Cast Flame Shock on an unaffected target if you have less than 6 active.
+        if not debuff[classtable.FlameShock].up and cooldown[classtable.FlameShock].ready then
+            return classtable.FlameShock
+        end
+        --Cast Primordial Wave, ideally on a target not affected by Flame Shock.
+        if talents[classtable.PrimordialWave] and not debuff[classtable.FlameShock].up and cooldown[classtable.PrimordialWave].ready then
+            return classtable.PrimordialWave
+        end
+    end
+    --Cast Lightning Bolt with 10 Maelstrom Weapon stacks, the Primordial Wave buff and as many Flame Shocks active as possible.
+    if talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 10 and talents[classtable.PrimordialWave] and buff[classtable.PrimordialWaveBuff].up and debuff[classtable.FlameShock].up and cooldown[classtable.LightningBolt].ready then
+        return classtable.LightningBolt
+    end
+    --Cast Elemental Blast with 10 Maelstrom Weapon stacks, at 2 charges and against 1-3 targets.
+    if maelstrom >= 90 and buff[classtable.MaelstromWeaponBuff].count >= 10 and cooldown[classtable.ElementalBlast].charges == 2 and targets <= 3 and cooldown[classtable.ElementalBlast].ready then
+        return classtable.ElementalBlast
+    end
+    --Cast Windstrike during Ascendance.
+    if MaxDps:FindSpell(classtable.Windstrike) and talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    --Cast Chain Lightning if at 10 Maelstrom Weapon stacks.
+    if talents[classtable.ChainLightning] and buff[classtable.MaelstromWeaponBuff].count >= 10 and cooldown[classtable.ChainLightning].ready then
+        return classtable.ChainLightning
+    end
+    --Cast Windfury Totem if not currently active.
+    if talents[classtable.WindfuryTotem] and not buff[classtable.WindfuryTotemBuff].up and cooldown[classtable.WindfuryTotem].ready then
+        return classtable.WindfuryTotem
+    end
+    --Cast Doom Winds.
+    if talents[classtable.DoomWinds] and cooldown[classtable.DoomWinds].ready then
+        return classtable.DoomWinds
+    end
+    --Cast Crash Lightning if the buff is not active, or during Doom Winds.
+    if (talents[classtable.CrashLightning] and not buff[classtable.CrashLightning]) or (talents[classtable.DoomWinds] and buff[classtable.DoomWinds].up) and cooldown[classtable.CrashLightning].ready then
+        return classtable.CrashLightning
+    end
+    --Cast Sundering, try to align with Doom Winds when possible.
+    if talents[classtable.Sundering] and cooldown[classtable.Sundering].ready then
+        return classtable.Sundering
+    end
+    --Cast Fire Nova with 6 active Flame Shocks.
+    if talents[classtable.FireNova] and cooldown[classtable.FireNova].ready then
+        return classtable.FireNova
+    end
+    --Cast Lava Lash, cycling between targets to apply Lashing Flames.
+    if talents[classtable.LavaLash] and cooldown[classtable.LavaLash].ready then
+        return classtable.LavaLash
+    end
+    --Cast Fire Nova with 3 active Flame Shocks.
+    if talents[classtable.FireNova] and cooldown[classtable.FireNova].ready then
+        return classtable.FireNova
+    end
+    --Stormstrike  / Windstrike.
+    if MaxDps:FindSpell(classtable.Stormstrike) and talents[classtable.Stormstrike] and cooldown[classtable.Stormstrike].ready then
+        return classtable.Stormstrike
+    end
+    if MaxDps:FindSpell(classtable.Windstrike) and talents[classtable.Windstrike] and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    --Cast Crash Lightning.
+    if talents[classtable.CrashLightning] and cooldown[classtable.CrashLightning].ready then
+        return classtable.CrashLightning
+    end
+    --Cast Ice Strike.
+    if talents[classtable.IceStrike] and cooldown[classtable.IceStrike].ready then
+        return classtable.IceStrike
+    end
+    --Cast Elemental Blast with 5+ Maelstrom Weapon stacks against 1-3 targets.
+    if maelstrom >= 90 and buff[classtable.MaelstromWeaponBuff].count >= 5 and targets <= 3 and cooldown[classtable.ElementalBlast].ready then
+        return classtable.ElementalBlast
+    end
+    --Cast Chain Lightning at 5+ Maelstrom Weapon stacks.
+    if buff[classtable.MaelstromWeaponBuff].count >= 5 and cooldown[classtable.ChainLightning].ready then
+        return classtable.ChainLightning
+    end
+    --Refresh Windfury Totem.
+    if talents[classtable.WindfuryTotem] and not buff[classtable.WindfuryTotemBuff].up and cooldown[classtable.WindfuryTotem].ready then
+        return classtable.WindfuryTotem
+    end
+    --Cast Flame Shock to fill.
+    if cooldown[classtable.FlameShock].ready then
+        return classtable.FlameShock
+    end
+    --Cast Frost Shock to fill.
+    if cooldown[classtable.FrostShock].ready then
+        return classtable.FrostShock
+    end
 end
