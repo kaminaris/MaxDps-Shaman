@@ -51,7 +51,7 @@ function Shaman:Enhancement()
     classtable.WindfuryTotemBuff = 327942
     classtable.PrimordialWaveBuff = 375986
     classtable.MaelstromWeaponBuff = 344179
-    setmetatable(classtable, Shaman.spellMeta)
+    --setmetatable(classtable, Shaman.spellMeta)
     if targets > 1  then
         return Shaman:EnhancementMultiTarget()
     end

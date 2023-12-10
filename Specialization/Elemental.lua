@@ -54,7 +54,7 @@ function Shaman:Elemental()
     classtable.LavaSurgeBuff = 77762
     classtable.MasteroftheElementsBuff = 260734
     classtable.PowerofTheMaelstromBuff = 191877
-    setmetatable(classtable, Shaman.spellMeta)
+    --setmetatable(classtable, Shaman.spellMeta)
     if targets > 1  then
         return Shaman:ElementalMultiTarget()
     end

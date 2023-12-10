@@ -47,7 +47,7 @@ function Shaman:Restoration()
     healthPerc = (curentHP / maxHP) * 100
     classtable = MaxDps.SpellTable
 	classtable.LavaSurgeBuff = 77762
-	setmetatable(classtable, Shaman.spellMeta)
+	--setmetatable(classtable, Shaman.spellMeta)
     if targets >= 3  then
         return Shaman:RestorationMultiTarget()
     end
