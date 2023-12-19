@@ -68,7 +68,7 @@ function Shaman:EnhancementSingleTarget()
         return classtable.Windstrike
     end
     --Cast Primordial Wave Icon Primordial Wave whenever available. With Tier 31 
-    if MaxDps.Tier and MaxDps.Tier[31].count >= 2 and talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
+    if MaxDps.tier and MaxDps.tier[31].count >= 2 and talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
         return classtable.PrimordialWave
     end
     --Cast Feral Spirit.
@@ -95,7 +95,7 @@ function Shaman:EnhancementSingleTarget()
         return classtable.DoomWinds
     end
     --Cast Sundering to trigger the T30 bonus.
-    if MaxDps.Tier and MaxDps.Tier[30].count >= 2 and talents[classtable.Sundering] and cooldown[classtable.Sundering].ready then
+    if MaxDps.tier and MaxDps.tier[30].count >= 2 and talents[classtable.Sundering] and cooldown[classtable.Sundering].ready then
         return classtable.Sundering
     end
     --Cast Windstrike on cooldown with Ascendance active.
@@ -201,7 +201,7 @@ end
 
 --Multiple-Target Rotation
 function Shaman:EnhancementMultiTarget()
-    if MaxDps.Tier and MaxDps.Tier[31].count >= 2 then
+    if MaxDps.tier and MaxDps.tier[31].count >= 2 then
         --Cast Primordial Wave whenever available.
         if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
             return classtable.PrimordialWave
@@ -219,7 +219,7 @@ function Shaman:EnhancementMultiTarget()
             return classtable.FlameShock
         end
     end
-    if not MaxDps.Tier or (MaxDps.Tier and MaxDps.Tier[31].count < 2) then
+    if not MaxDps.tier or (MaxDps.tier and MaxDps.tier[31].count < 2) then
         --Cast Feral Spirit.
         if talents[classtable.FeralSpirit] and cooldown[classtable.FeralSpirit].ready then
             return classtable.FeralSpirit

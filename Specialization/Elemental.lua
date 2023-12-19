@@ -66,7 +66,7 @@ end
 
 --Single-Target Rotation
 function Shaman:ElementalSingleTarget()
-    if MaxDps.Tier and MaxDps.Tier[31].count >= 4 then
+    if MaxDps.tier and MaxDps.tier[31].count >= 4 then
         --Cast Fire Elemental.
         if talents[classtable.FireElemental] and cooldown[classtable.FireElemental].ready then
             return classtable.FireElemental
@@ -127,7 +127,7 @@ function Shaman:ElementalSingleTarget()
             return classtable.FrostShock
         end
     end
-    if not MaxDps.Tier or (MaxDps.Tier and MaxDps.Tier[31].count < 4) then
+    if not MaxDps.tier or (MaxDps.tier and MaxDps.tier[31].count < 4) then
         --Cast Primordial Wave whenever available.
         if talents[classtable.PrimordialWave] and cooldown[classtable.PrimordialWave].ready then
             return classtable.PrimordialWave
@@ -266,7 +266,7 @@ function Shaman:ElementalSingleTarget()
 end
 
 function Shaman:ElementalMultiTarget()
-    if not MaxDps.Tier or (MaxDps.Tier and MaxDps.Tier[31].count < 4) then
+    if not MaxDps.tier or (MaxDps.tier and MaxDps.tier[31].count < 4) then
         --Cast Fire Elemental.
         if talents[classtable.FireElemental] and cooldown[classtable.FireElemental].ready then
             return classtable.FireElemental
@@ -365,7 +365,7 @@ function Shaman:ElementalMultiTarget()
             return classtable.FlameShock
         end
     end
-    if MaxDps.Tier and MaxDps.Tier[31].count >= 4 then
+    if MaxDps.tier and MaxDps.tier[31].count >= 4 then
         --Cast Fire Elemental if Ascendance is not up.
         if talents[classtable.FireElemental] and talents[classtable.Ascendance] and not buff[classtable.Ascendance].up and cooldown[classtable.FireElemental].ready then
             return classtable.FireElemental
