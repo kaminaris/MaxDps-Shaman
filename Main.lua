@@ -20,13 +20,13 @@ Shaman.spellMeta = {
 function Shaman:Enable()
 	if MaxDps.Spec == 1 then
 		MaxDps.NextSpell = Shaman.Elemental
-		MaxDps:Print(MaxDps.Colors.Info .. 'Shaman Elemental')
+		MaxDps:Print(MaxDps.Colors.Info .. 'Shaman Elemental', "info")
 	elseif MaxDps.Spec == 2 then
 		MaxDps.NextSpell = Shaman.Enhancement
-		MaxDps:Print(MaxDps.Colors.Info .. 'Shaman Enhancement')
+		MaxDps:Print(MaxDps.Colors.Info .. 'Shaman Enhancement', "info")
 	elseif MaxDps.Spec == 3 then
 		MaxDps.NextSpell = Shaman.Restoration
-		MaxDps:Print(MaxDps.Colors.Info .. 'Shaman Restoration')
+		MaxDps:Print(MaxDps.Colors.Info .. 'Shaman Restoration', "info")
 	end
 
 	return true
