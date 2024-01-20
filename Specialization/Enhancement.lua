@@ -51,6 +51,9 @@ function Shaman:Enhancement()
     classtable.WindfuryTotemBuff = 327942
     classtable.PrimordialWaveBuff = 375986
     classtable.MaelstromWeaponBuff = 344179
+	classtable.HailstormBuff = 334196
+	classtable.IceStrikeBuff = 384357
+	classtable.FeralSpiritsBuff = 333957
     --setmetatable(classtable, Shaman.spellMeta)
     if targets > 1  then
         return Shaman:EnhancementMultiTarget()
@@ -76,10 +79,10 @@ function Shaman:EnhancementSingleTarget()
         return classtable.FeralSpirit
     end
     --Cast Primordial Wave or Flame Shock if it is not active on your target.
-    if talents[classtable.PrimordialWave] and not debuff[classtable.PrimordialWaveBuff].up and cooldown[classtable.PrimordialWave].ready then
+    if talents[classtable.PrimordialWave] and not debuff[classtable.FlameShock].up and cooldown[classtable.PrimordialWave].ready then
         return classtable.PrimordialWave
     end
-    if debuff[classtable.FlameShock].up and cooldown[classtable.FlameShock].ready then
+    if not debuff[classtable.FlameShock].up and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
     --Cast Windfury Totem if not currently active.
@@ -102,16 +105,20 @@ function Shaman:EnhancementSingleTarget()
     if MaxDps:FindSpell(classtable.Windstrike) and talents[classtable.Ascendance] and buff[classtable.Ascendance].up and cooldown[classtable.Windstrike].ready then
         return classtable.Windstrike
     end
+	--Cast Lightning Bolt with 10+ maelstrom charges and primordial wave buff active
+	if buff[classtable.PrimordialWaveBuff].up and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 10 then
+		return classtable.LightningBolt
+	end
     --Cast Lava Lash if Hot Hand is active.
     if talents[classtable.LavaLash] and talents[classtable.HotHand] and buff[classtable.HotHand].up and cooldown[classtable.LavaLash].ready then
         return classtable.LavaLash
     end
     --Cast Elemental Blast with 5+ Maelstrom Weapon stacks and are at two charges.
-    if maelstrom >= 90 and talents[classtable.ElementalBlast] and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 5 and cooldown[classtable.ElementalBlast].charges == 2 and cooldown[classtable.ElementalBlast].ready then
+    if talents[classtable.ElementalBlast] and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 5 and cooldown[classtable.ElementalBlast].charges == 2 and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
     --Cast Elemental Blast with 8+ Maelstrom Weapon stacks and Feral Spirit active.
-    if maelstrom >= 90 and talents[classtable.ElementalBlast] and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 8 and buff[classtable.FeralSpirit].up and cooldown[classtable.ElementalBlast].ready then
+    if talents[classtable.ElementalBlast] and talents[classtable.MaelstromWeapon] and buff[classtable.MaelstromWeaponBuff].count >= 8 and buff[classtable.FeralSpiritsBuff].up and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
     --Cast Lightning Bolt with 5+ Maelstrom Weapon stacks.
@@ -121,6 +128,10 @@ function Shaman:EnhancementSingleTarget()
     --Cast Ice Strike with Doom Winds active.
     if talents[classtable.IceStrike] and talents[classtable.DoomWinds] and cooldown[classtable.IceStrike].ready then
         return classtable.IceStrike
+    end
+	--cast Frost Shock with Ice Strike active and Hailstorm stacks
+	if talents[classtable.IceStrike] and talents[classtable.FrostShock] and cooldown[classtable.FrostShock].ready and buff[classtable.IceStrikeBuff].up and buff[classtable.HailstormBuff].up then
+        return classtable.FrostShock
     end
     --Cast Sundering with Doom Winds active.
     if talents[classtable.Sundering] and talents[classtable.DoomWinds] and buff[classtable.DoomWinds].up and cooldown[classtable.Sundering].ready then
@@ -140,13 +151,13 @@ function Shaman:EnhancementSingleTarget()
         if talents[classtable.IceStrike] and cooldown[classtable.IceStrike].ready then
             return classtable.IceStrike
         end
+		--Cast Frost Shock if you have Hailstorm stacks.
+        if talents[classtable.FrostShock] and talents[classtable.Hailstorm] and buff[classtable.HailstormBuff].up and cooldown[classtable.FrostShock].ready then
+            return classtable.FrostShock
+        end
         --Cast Lava Lash.
         if talents[classtable.LavaLash] and cooldown[classtable.LavaLash].ready then
             return classtable.LavaLash
-        end
-        --Cast Frost Shock if you have Hailstorm stacks.
-        if talents[classtable.FrostShock] and talents[classtable.Hailstorm] and buff[classtable.Hailstorm].up and cooldown[classtable.FrostShock].ready then
-            return classtable.FrostShock
         end
         --Cast Stormstrike.
         if MaxDps:FindSpell(classtable.Stormstrike) and talents[classtable.Stormstrike] and cooldown[classtable.Stormstrike].ready then
