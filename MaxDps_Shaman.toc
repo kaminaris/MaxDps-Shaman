@@ -1,7 +1,7 @@
 ## Title: MaxDps_Shaman
-## Version: 10.0.12
+## Version: 10.0.13
 ## Author: Kaminaris
-## Interface: 100205
+## Interface: 100206
 ## Dependencies: MaxDps
 ## LoadOnDemand: 1
 ## X-Curse-Project-ID: 92010
