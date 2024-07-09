@@ -6,6 +6,7 @@
 ## LoadOnDemand: 1
 ## X-Curse-Project-ID: 92010
 ## X-WoWI-ID: 24640
+## X-Wago-ID: aNevwk62
 
 Main.lua
 Specialization\Elemental.lua
