@@ -4,7 +4,7 @@ _G[addonName] = addonTable
 --- @type MaxDps
 if not MaxDps then return end
 local MaxDps = MaxDps
-local GetSpellInfo = GetSpellInfo
+local GetSpellInfo = C_Spell and C_Spell.GetSpellInfo or _G.GetSpellInfo
 local GetTotemInfo = GetTotemInfo
 local GetTime = GetTime
 
@@ -33,7 +33,7 @@ function Shaman:Enable()
 end
 
 function Shaman:TotemMastery(totem)
-	local tmName = GetSpellInfo(totem)
+	local tmName = C_Spell and GetSpellInfo(totem).name or GetSpellInfo(totem)
 
 	for i = 1, 4 do
 		local haveTotem, totemName, startTime, duration = GetTotemInfo(i)
