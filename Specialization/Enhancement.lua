@@ -70,30 +70,13 @@ local Enhancement = {}
 local trinketone_is_weird
 local trinkettwo_is_weird
 local min_talented_cd_remains
+local target_nature_mod
+local expected_lb_funnel
+local expected_cl_funnel
 
 local function CheckSpellCosts(spell,spellstring)
     if not IsSpellKnown(spell) then return false end
     if not C_Spell.IsSpellUsable(spell) then return false end
-    if spellstring == 'TouchofDeath' then
-        if targethealthPerc > 15 then
-            return false
-        end
-    end
-    if spellstring == 'KillShot' then
-        if (classtable.SicEmBuff and not buff[classtable.SicEmBuff].up) or (classtable.HuntersPreyBuff and not buff[classtable.HuntersPreyBuff].up) and targethealthPerc > 15 then
-            return false
-        end
-    end
-    if spellstring == 'HammerofWrath' then
-        if ( (classtable.AvengingWrathBuff and not buff[classtable.AvengingWrathBuff].up) or (classtable.FinalVerdictBuff and not buff[classtable.FinalVerdictBuff].up) ) and targethealthPerc > 20 then
-            return false
-        end
-    end
-    if spellstring == 'Execute' then
-        if (classtable.SuddenDeathBuff and not buff[classtable.SuddenDeathBuff].up) and targethealthPerc > 35 then
-            return false
-        end
-    end
     local costs = C_Spell.GetSpellPowerCost(spell)
     if type(costs) ~= 'table' and spellstring then return true end
     for i,costtable in pairs(costs) do
@@ -210,8 +193,27 @@ function Enhancement:precombat()
     --    return classtable.LightningShield
     --end
     --min_talented_cd_remains = ( ( cooldown[classtable.FeralSpirit].remains % ( 1 + 1.5 * (talents[classtable.WitchDoctorsAncestry] and talents[classtable.WitchDoctorsAncestry] or 0) ) ) + 1000 * not talents[classtable.FeralSpirit] ) <( cooldown[classtable.DoomWinds].remains + 1000 * not talents[classtable.DoomWinds] ) <( cooldown[classtable.Ascendance].remains + 1000 * not talents[classtable.Ascendance] )
+    --target_nature_mod = ( 1 + debuff[classtable.ChaosBrandDeBuff].up * debuff[classtable.ChaosBrandDeBuff].value ) * ( 1 + ( debuff[classtable.HuntersMarkDeBuff].up * targetHP >= 80 ) * debuff[classtable.HuntersMarkDeBuff].value )
 end
 function Enhancement:single()
+    if (CheckSpellCosts(classtable.Windstrike, 'Windstrike')) and (talents[classtable.ThorimsInvocation] and buff[classtable.MaelstromWeaponBuff].count >1 and talents[classtable.ThorimsInvocation] and not talents[classtable.ElementalSpirits]) and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    if (CheckSpellCosts(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
+        MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
+    end
+    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count == 5 or ( buff[classtable.MaelstromWeaponBuff].count >= 5 and ( tempest_mael_count >30 or buff[classtable.AwakeningStormsBuff].count == 2 ) )) and cooldown[classtable.Tempest].ready then
+        return classtable.Tempest
+    end
+    if (CheckSpellCosts(classtable.DoomWinds, 'DoomWinds')) and (math.huge >= cooldown[classtable.DoomWinds].remains) and cooldown[classtable.DoomWinds].ready then
+        return classtable.DoomWinds
+    end
+    if (CheckSpellCosts(classtable.Windstrike, 'Windstrike')) and (talents[classtable.ThorimsInvocation] and buff[classtable.MaelstromWeaponBuff].count >1 and talents[classtable.ThorimsInvocation]) and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and (buff[classtable.AscendanceBuff].up and ( UnitExists('pet') and UnitName('pet')  == 'surging_totem' ) and talents[classtable.Earthsurge]) and cooldown[classtable.Sundering].ready then
+        return classtable.Sundering
+    end
     if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and (not debuff[classtable.FlameShockDeBuff].up and talents[classtable.LashingFlames] and ( math.huge >( cooldown[classtable.PrimordialWave].remains % ( 1 + (MaxDps.tier and MaxDps.tier[31].count >= 4 and 1 or 0) ) ) or math.huge <6 )) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
@@ -221,16 +223,16 @@ function Enhancement:single()
     if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and talents[classtable.ElementalSpirits] and buff[classtable.FeralSpiritBuff].up) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
+    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (talents[classtable.Supercharge] and buff[classtable.MaelstromWeaponBuff].count == 5) and cooldown[classtable.LightningBolt].ready then
+        return classtable.LightningBolt
+    end
     if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and ((MaxDps.tier and MaxDps.tier[30].count >= 2) and math.huge >= cooldown[classtable.Sundering].remains) and cooldown[classtable.Sundering].ready then
         return classtable.Sundering
-    end
-    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and cooldown[classtable.Tempest].ready then
-        return classtable.Tempest
     end
     if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and not buff[classtable.CracklingThunderBuff].up and buff[classtable.AscendanceBuff].up and talents[classtable.ThorimsInvocation] and ( buff[classtable.AscendanceBuff].remains >( cooldown[classtable.Strike].remains + gcd ) )) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.Stormstrike, 'Stormstrike')) and (buff[classtable.DoomWindsBuff].up or talents[classtable.DeeplyRootedElements] or ( talents[classtable.Stormblast] and buff[classtable.StormbringerBuff].up )) and cooldown[classtable.Stormstrike].ready then
+    if (CheckSpellCosts(classtable.Stormstrike, 'Stormstrike')) and (not talents[classtable.ElementalSpirits] and ( buff[classtable.DoomWindsBuff].up or talents[classtable.DeeplyRootedElements] or ( talents[classtable.Stormblast] and buff[classtable.StormbringerBuff].up ) )) and cooldown[classtable.Stormstrike].ready then
         return classtable.Stormstrike
     end
     if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (buff[classtable.HotHandBuff].up) and cooldown[classtable.LavaLash].ready then
@@ -238,6 +240,9 @@ function Enhancement:single()
     end
     if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and cooldown[classtable.ElementalBlast].charges == cooldown[classtable.ElementalBlast].maxCharges) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
+    end
+    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 8) and cooldown[classtable.Tempest].ready then
+        return classtable.Tempest
     end
     if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count >= 8 and buff[classtable.PrimordialWaveBuff].up and math.huge >buff[classtable.PrimordialWaveBuff].remains and ( not buff[classtable.SplinteredElementsBuff].up or boss and ttd <= 12 )) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
@@ -260,6 +265,9 @@ function Enhancement:single()
     if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and (math.huge >( cooldown[classtable.PrimordialWave].remains % ( 1 + (MaxDps.tier and MaxDps.tier[31].count >= 4 and 1 or 0) ) ) or math.huge <6) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
+    if (CheckSpellCosts(classtable.Stormstrike, 'Stormstrike')) and (talents[classtable.ElementalSpirits] and ( buff[classtable.DoomWindsBuff].up or talents[classtable.DeeplyRootedElements] or ( talents[classtable.Stormblast] and buff[classtable.StormbringerBuff].up ) )) and cooldown[classtable.Stormstrike].ready then
+        return classtable.Stormstrike
+    end
     if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
@@ -274,6 +282,9 @@ function Enhancement:single()
     end
     if (CheckSpellCosts(classtable.FrostShock, 'FrostShock')) and (buff[classtable.HailstormBuff].up) and cooldown[classtable.FrostShock].ready then
         return classtable.FrostShock
+    end
+    if (CheckSpellCosts(classtable.CrashLightning, 'CrashLightning')) and (talents[classtable.ConvergingStorms]) and cooldown[classtable.CrashLightning].ready then
+        return classtable.CrashLightning
     end
     if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and cooldown[classtable.LavaLash].ready then
         return classtable.LavaLash
@@ -290,8 +301,8 @@ function Enhancement:single()
     if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and (math.huge >= cooldown[classtable.Sundering].remains) and cooldown[classtable.Sundering].ready then
         return classtable.Sundering
     end
-    if (CheckSpellCosts(classtable.FireNova, 'FireNova')) and (talents[classtable.SwirlingMaelstrom] and debuff[classtable.FlameShockDeBuff].count  and buff[classtable.MaelstromWeaponBuff].count <MaelstromWeaponBuffmaxStacks) and cooldown[classtable.FireNova].ready then
-        return classtable.FireNova
+    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 5) and cooldown[classtable.Tempest].ready then
+        return classtable.Tempest
     end
     if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (talents[classtable.Hailstorm] and buff[classtable.MaelstromWeaponBuff].count >= 5 and not buff[classtable.PrimordialWaveBuff].up) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
@@ -319,10 +330,16 @@ function Enhancement:single()
     end
 end
 function Enhancement:aoe()
+    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count == 5 or ( buff[classtable.MaelstromWeaponBuff].count >= 5 and ( tempest_mael_count >30 or buff[classtable.AwakeningStormsBuff].count == 2 ) )) and cooldown[classtable.Tempest].ready then
+        return classtable.Tempest
+    end
+    if (CheckSpellCosts(classtable.Windstrike, 'Windstrike')) and (talents[classtable.ThorimsInvocation] and buff[classtable.MaelstromWeaponBuff].count >1 and talents[classtable.ThorimsInvocation]) and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
     if (CheckSpellCosts(classtable.CrashLightning, 'CrashLightning')) and (talents[classtable.CrashingStorms] and ( ( talents[classtable.UnrulyWinds] and targets >= 10 ) or targets >= 15 )) and cooldown[classtable.CrashLightning].ready then
         return classtable.CrashLightning
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (( debuff[classtable.FlameShockDeBuff].count  == targets or debuff[classtable.FlameShockDeBuff].count  == 6 ) and buff[classtable.PrimordialWaveBuff].up and buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks and ( not buff[classtable.SplinteredElementsBuff].up or boss and ttd <= 12 or targets <= gcd )) and cooldown[classtable.LightningBolt].ready then
+    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (( not talents[classtable.Tempest] or ( tempest_mael_count <= 10 and buff[classtable.AwakeningStormsBuff].count <= 1 ) ) and ( ( debuff[classtable.FlameShockDeBuff].count  == targets or debuff[classtable.FlameShockDeBuff].count  == 6 ) and buff[classtable.PrimordialWaveBuff].up and buff[classtable.MaelstromWeaponBuff].count == 5 and ( not buff[classtable.SplinteredElementsBuff].up or ttd <= 12 or targets <= gcd ) )) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
     if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (talents[classtable.MoltenAssault] and ( talents[classtable.PrimordialWave] or talents[classtable.FireNova] ) and debuff[classtable.FlameShockDeBuff].up and ( debuff[classtable.FlameShockDeBuff].count  <targets ) and debuff[classtable.FlameShockDeBuff].count  <6) and cooldown[classtable.LavaLash].ready then
@@ -331,28 +348,37 @@ function Enhancement:aoe()
     if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and (not buff[classtable.PrimordialWaveBuff].up) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
-    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (( not talents[classtable.ElementalSpirits] or ( talents[classtable.ElementalSpirits] and ( cooldown[classtable.ElementalBlast].charges == cooldown[classtable.ElementalBlast].maxCharges or buff[classtable.FeralSpiritBuff].up ) ) ) and buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks and ( not talents[classtable.CrashingStorms] or targets <= 3 )) and cooldown[classtable.ElementalBlast].ready then
+    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.ArcDischargeBuff].up and buff[classtable.MaelstromWeaponBuff].count >= 5) and cooldown[classtable.ChainLightning].ready then
+        return classtable.ChainLightning
+    end
+    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (( not talents[classtable.ElementalSpirits] or ( talents[classtable.ElementalSpirits] and ( cooldown[classtable.ElementalBlast].charges == cooldown[classtable.ElementalBlast].maxCharges or buff[classtable.FeralSpiritBuff].up ) ) ) and buff[classtable.MaelstromWeaponBuff].count == 5 and ( not talents[classtable.CrashingStorms] or targets <= 3 )) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
     if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and cooldown[classtable.Tempest].ready then
-        return classtable.Tempest
-    end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.CrashLightning, 'CrashLightning')) and (buff[classtable.DoomWindsBuff].up or not buff[classtable.CrashLightningBuff].up or ( talents[classtable.AlphaWolf] and buff[classtable.FeralSpiritBuff].up )) and cooldown[classtable.CrashLightning].ready then
+    if (CheckSpellCosts(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
+        MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
+    end
+    if (CheckSpellCosts(classtable.DoomWinds, 'DoomWinds')) and cooldown[classtable.DoomWinds].ready then
+        return classtable.DoomWinds
+    end
+    if (CheckSpellCosts(classtable.CrashLightning, 'CrashLightning')) and (buff[classtable.DoomWindsBuff].up or not buff[classtable.CrashLightningBuff].up or ( talents[classtable.AlphaWolf] and buff[classtable.FeralSpiritBuff].up and buff[classtable.FeralSpiritBuff].up == 0 )) and cooldown[classtable.CrashLightning].ready then
         return classtable.CrashLightning
     end
-    if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and (buff[classtable.DoomWindsBuff].up or (MaxDps.tier and MaxDps.tier[30].count >= 2)) and cooldown[classtable.Sundering].ready then
+    if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and (buff[classtable.DoomWindsBuff].up or (MaxDps.tier and MaxDps.tier[30].count >= 2) or talents[classtable.Earthsurge]) and cooldown[classtable.Sundering].ready then
         return classtable.Sundering
     end
     if (CheckSpellCosts(classtable.FireNova, 'FireNova')) and (debuff[classtable.FlameShockDeBuff].count  == 6 or ( debuff[classtable.FlameShockDeBuff].count  >= 4 and debuff[classtable.FlameShockDeBuff].count  == targets )) and cooldown[classtable.FireNova].ready then
         return classtable.FireNova
     end
+    if (CheckSpellCosts(classtable.Stormstrike, 'Stormstrike')) and (buff[classtable.CrashLightningBuff].up and ( talents[classtable.DeeplyRootedElements] or buff[classtable.ConvergingStormsBuff].count == 6 )) and cooldown[classtable.Stormstrike].ready then
+        return classtable.Stormstrike
+    end
     if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (talents[classtable.LashingFlames]) and cooldown[classtable.LavaLash].ready then
         return classtable.LavaLash
     end
-    if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (( talents[classtable.MoltenAssault] and debuff[classtable.FlameShockDeBuff].up and ( debuff[classtable.FlameShockDeBuff].count  <targets ) and debuff[classtable.FlameShockDeBuff].count  <6 ) or ( talents[classtable.AshenCatalyst] and buff[classtable.AshenCatalystBuff].count == AshenCatalystBuffmaxStacks )) and cooldown[classtable.LavaLash].ready then
+    if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (talents[classtable.MoltenAssault] and debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.LavaLash].ready then
         return classtable.LavaLash
     end
     if (CheckSpellCosts(classtable.IceStrike, 'IceStrike')) and (talents[classtable.Hailstorm] and not buff[classtable.IceStrikeBuff].up) and cooldown[classtable.IceStrike].ready then
@@ -411,37 +437,52 @@ function Enhancement:aoe()
     end
 end
 function Enhancement:funnel()
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (( debuff[classtable.FlameShockDeBuff].count  == targets or debuff[classtable.FlameShockDeBuff].count  == 6 ) and buff[classtable.PrimordialWaveBuff].up and buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks and ( not buff[classtable.SplinteredElementsBuff].up or boss and ttd <= 12 or targets <= gcd )) and cooldown[classtable.LightningBolt].ready then
-        return classtable.LightningBolt
+    if (CheckSpellCosts(classtable.Ascendance, 'Ascendance')) and cooldown[classtable.Ascendance].ready then
+        MaxDps:GlowCooldown(classtable.Ascendance, cooldown[classtable.Ascendance].ready)
     end
-    if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (( talents[classtable.MoltenAssault] and debuff[classtable.FlameShockDeBuff].up and ( debuff[classtable.FlameShockDeBuff].count  <targets ) and debuff[classtable.FlameShockDeBuff].count  <6 ) or ( talents[classtable.AshenCatalyst] and buff[classtable.AshenCatalystBuff].count == AshenCatalystBuffmaxStacks )) and cooldown[classtable.LavaLash].ready then
+    if (CheckSpellCosts(classtable.Windstrike, 'Windstrike')) and (( talents[classtable.ThorimsInvocation] and buff[classtable.MaelstromWeaponBuff].count >1 ) or buff[classtable.ConvergingStormsBuff].count == 6) and cooldown[classtable.Windstrike].ready then
+        return classtable.Windstrike
+    end
+    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count == 5 or ( buff[classtable.MaelstromWeaponBuff].count >= 5 and ( tempest_mael_count >30 or buff[classtable.AwakeningStormsBuff].count == 2 ) )) and cooldown[classtable.Tempest].ready then
+        return classtable.Tempest
+    end
+    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and talents[classtable.ElementalSpirits] and buff[classtable.FeralSpiritBuff].up >= 4) and cooldown[classtable.ElementalBlast].ready then
+        return classtable.ElementalBlast
+    end
+    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (( talents[classtable.Supercharge] and buff[classtable.MaelstromWeaponBuff].count == 5 ) or buff[classtable.ArcDischargeBuff].up and buff[classtable.MaelstromWeaponBuff].count >= 5) and cooldown[classtable.ChainLightning].ready then
+        return classtable.ChainLightning
+    end
+    if (CheckSpellCosts(classtable.LavaLash, 'LavaLash')) and (( talents[classtable.MoltenAssault] and debuff[classtable.FlameShockDeBuff].up and ( debuff[classtable.FlameShockDeBuff].count  <targets ) and debuff[classtable.FlameShockDeBuff].count  <6 ) or ( talents[classtable.AshenCatalyst] and buff[classtable.AshenCatalystBuff].count == buff[classtable.AshenCatalystBuff].maxStacks )) and cooldown[classtable.LavaLash].ready then
         return classtable.LavaLash
     end
     if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and (not buff[classtable.PrimordialWaveBuff].up) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
-    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (( not talents[classtable.ElementalSpirits] or ( talents[classtable.ElementalSpirits] and ( cooldown[classtable.ElementalBlast].charges == cooldown[classtable.ElementalBlast].maxCharges or buff[classtable.FeralSpiritBuff].up ) ) ) and buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks) and cooldown[classtable.ElementalBlast].ready then
+    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (( not talents[classtable.ElementalSpirits] or ( talents[classtable.ElementalSpirits] and ( cooldown[classtable.ElementalBlast].charges == cooldown[classtable.ElementalBlast].maxCharges or buff[classtable.FeralSpiritBuff].up ) ) ) and buff[classtable.MaelstromWeaponBuff].count == 5) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
-    if (CheckSpellCosts(classtable.Windstrike, 'Windstrike')) and (( talents[classtable.ThorimsInvocation] and buff[classtable.MaelstromWeaponBuff].count >1 ) or buff[classtable.ConvergingStormsBuff].count == ConvergingStormsBuffmaxStacks) and cooldown[classtable.Windstrike].ready then
-        return classtable.Windstrike
+    if (CheckSpellCosts(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
+        MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
     end
-    if (CheckSpellCosts(classtable.Stormstrike, 'Stormstrike')) and (buff[classtable.ConvergingStormsBuff].count == ConvergingStormsBuffmaxStacks) and cooldown[classtable.Stormstrike].ready then
+    if (CheckSpellCosts(classtable.DoomWinds, 'DoomWinds')) and cooldown[classtable.DoomWinds].ready then
+        return classtable.DoomWinds
+    end
+    if (CheckSpellCosts(classtable.Stormstrike, 'Stormstrike')) and (buff[classtable.ConvergingStormsBuff].count == 6) and cooldown[classtable.Stormstrike].ready then
         return classtable.Stormstrike
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks and buff[classtable.CracklingThunderBuff].up) and cooldown[classtable.ChainLightning].ready then
+    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.MaelstromWeaponBuff].count == 5 and buff[classtable.CracklingThunderBuff].up) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (( buff[classtable.MoltenWeaponBuff].count + buff[classtable.VolcanicStrengthBuff].duration >buff[classtable.CracklingSurgeBuff].count ) and buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks) and cooldown[classtable.LavaBurst].ready then
+    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (( buff[classtable.MoltenWeaponBuff].count + buff[classtable.VolcanicStrengthBuff].duration >buff[classtable.CracklingSurgeBuff].count ) and buff[classtable.MaelstromWeaponBuff].count == 5) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
     if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count == MaelstromWeaponBuffmaxStacks) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.CrashLightning, 'CrashLightning')) and (buff[classtable.DoomWindsBuff].up or not buff[classtable.CrashLightningBuff].up or ( talents[classtable.AlphaWolf] and buff[classtable.FeralSpiritBuff].up ) or ( talents[classtable.ConvergingStorms] and buff[classtable.ConvergingStormsBuff].count <ConvergingStormsBuffmaxStacks )) and cooldown[classtable.CrashLightning].ready then
-        return classtable.CrashLightning
+    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.MaelstromWeaponBuff].count == 5) and cooldown[classtable.ChainLightning].ready then
+        return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and (buff[classtable.DoomWindsBuff].up or (MaxDps.tier and MaxDps.tier[30].count >= 2)) and cooldown[classtable.Sundering].ready then
+    if (CheckSpellCosts(classtable.Sundering, 'Sundering')) and (buff[classtable.DoomWindsBuff].up or (MaxDps.tier and MaxDps.tier[30].count >= 2) or talents[classtable.Earthsurge]) and cooldown[classtable.Sundering].ready then
         return classtable.Sundering
     end
     if (CheckSpellCosts(classtable.FireNova, 'FireNova')) and (debuff[classtable.FlameShockDeBuff].count  == 6 or ( debuff[classtable.FlameShockDeBuff].count  >= 4 and debuff[classtable.FlameShockDeBuff].count  == targets )) and cooldown[classtable.FireNova].ready then
@@ -498,6 +539,9 @@ function Enhancement:funnel()
     if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count >= 5) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
+    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.MaelstromWeaponBuff].count >= 5) and cooldown[classtable.ChainLightning].ready then
+        return classtable.ChainLightning
+    end
     if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
@@ -516,20 +560,17 @@ function Enhancement:callaction()
     --if (CheckSpellCosts(classtable.Purge, 'Purge')) and cooldown[classtable.Purge].ready then
     --    return classtable.Purge
     --end
-    if (CheckSpellCosts(classtable.Windstrike, 'Windstrike')) and (talents[classtable.ThorimsInvocation] and buff[classtable.MaelstromWeaponBuff].count >1 and ( targets == 1 and talents[classtable.ThorimsInvocation] ) or ( targets >1 and talents[classtable.ThorimsInvocation] )) and cooldown[classtable.Windstrike].ready then
-        return classtable.Windstrike
-    end
     if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and ((MaxDps.tier and MaxDps.tier[31].count >= 2) and ( math.huge >( cooldown[classtable.PrimordialWave].remains % ( 1 + (MaxDps.tier and MaxDps.tier[31].count >= 4 and 1 or 0) ) ) or math.huge <6 )) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
-    if (CheckSpellCosts(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
+    if (CheckSpellCosts(classtable.FeralSpirit, 'FeralSpirit')) and (talents[classtable.ElementalSpirits] or ( talents[classtable.AlphaWolf] and targets >1 )) and cooldown[classtable.FeralSpirit].ready then
         MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
+    end
+    if (CheckSpellCosts(classtable.SurgingTotem, 'SurgingTotem')) and cooldown[classtable.SurgingTotem].ready then
+        return classtable.SurgingTotem
     end
     if (CheckSpellCosts(classtable.Ascendance, 'Ascendance')) and (debuff[classtable.FlameShockDeBuff].up and ( ( talents[classtable.ThorimsInvocation] and targets == 1 and math.huge >= cooldown[classtable.Ascendance].remains % 2 ) or ( talents[classtable.ThorimsInvocation] and targets >1 ) )) and cooldown[classtable.Ascendance].ready then
         MaxDps:GlowCooldown(classtable.Ascendance, cooldown[classtable.Ascendance].ready)
-    end
-    if (CheckSpellCosts(classtable.DoomWinds, 'DoomWinds')) and (math.huge >= cooldown[classtable.DoomWinds].remains or targets >1) and cooldown[classtable.DoomWinds].ready then
-        return classtable.DoomWinds
     end
     if (targets == 1) then
         local singleCheck = Enhancement:single()
@@ -574,21 +615,26 @@ function Shaman:Enhancement()
         self.Flags[spellId] = false
         self:ClearGlowIndependent(spellId, spellId)
     end
+    classtable.ChaosBrandDeBuff = 0
+    classtable.HuntersMarkDeBuff = 0
+    classtable.LightningRodDeBuff = 0
+    classtable.PrimordialWaveBuff = 375986
     classtable.FlameShockDeBuff = 188389
     classtable.MaelstromWeaponBuff = 344179
-    classtable.CracklingThunderBuff = 0
+    classtable.AwakeningStormsBuff = 0
     classtable.AscendanceBuff = 114051
+    classtable.CracklingThunderBuff = 0
     classtable.DoomWindsBuff = 384352
     classtable.StormbringerBuff = 201846
     classtable.HotHandBuff = 215785
-    classtable.PrimordialWaveBuff = 375986
     classtable.SplinteredElementsBuff = 382043
     classtable.IceStrikeBuff = 384357
     classtable.HailstormBuff = 334196
+    classtable.ArcDischargeBuff = 0
     classtable.CrashLightningBuff = 0
-    classtable.AshenCatalystBuff = 0
     classtable.ConvergingStormsBuff = 198300
     classtable.ClCrashLightningBuff = 0
+    classtable.AshenCatalystBuff = 0
     classtable.FeralSpiritBuff = 333957
     classtable.MoltenWeaponBuff = 0
     classtable.VolcanicStrengthBuff = 0
