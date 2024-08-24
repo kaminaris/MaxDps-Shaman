@@ -72,7 +72,7 @@ local spymaster_in_onest
 local spymaster_in_twond
 
 local function CheckSpellCosts(spell,spellstring)
-    if not IsSpellKnown(spell) then return false end
+    if not IsSpellKnownOrOverridesKnown(spell) then return false end
     if not C_Spell.IsSpellUsable(spell) then return false end
     local costs = C_Spell.GetSpellPowerCost(spell)
     if type(costs) ~= 'table' and spellstring then return true end
@@ -478,6 +478,7 @@ function Shaman:Elemental()
     Maelstrom = UnitPower('player', MaelstromPT)
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
+    classtable.Icefury = 210714
     for spellId in pairs(MaxDps.Flags) do
         self.Flags[spellId] = false
         self:ClearGlowIndependent(spellId, spellId)
