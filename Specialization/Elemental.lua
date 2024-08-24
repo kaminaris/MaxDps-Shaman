@@ -501,7 +501,7 @@ function Shaman:Elemental()
     classtable.PoweroftheMaelstromBuff = 191877
     classtable.IcefuryBuff = 462818
     classtable.IcefuryDmgBuff = 0
-    classtable.LightningShieldBuff = 0
+    classtable.LightningShieldBuff = 192106
 
     local precombatCheck = Elemental:precombat()
     if precombatCheck then
