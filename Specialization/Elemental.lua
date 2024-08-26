@@ -71,93 +71,6 @@ local mael_cap
 local spymaster_in_onest
 local spymaster_in_twond
 
-local function CheckSpellCosts(spell,spellstring)
-    if not IsSpellKnownOrOverridesKnown(spell) then return false end
-    if not C_Spell.IsSpellUsable(spell) then return false end
-    local costs = C_Spell.GetSpellPowerCost(spell)
-    if type(costs) ~= 'table' and spellstring then return true end
-    for i,costtable in pairs(costs) do
-        if UnitPower('player', costtable.type) < costtable.cost then
-            return false
-        end
-    end
-    return true
-end
-local function MaxGetSpellCost(spell,power)
-    local costs = C_Spell.GetSpellPowerCost(spell)
-    if type(costs) ~= 'table' then return 0 end
-    for i,costtable in pairs(costs) do
-        if costtable.name == power then
-            return costtable.cost
-        end
-    end
-    return 0
-end
-
-
-
-local function CheckTrinketNames(checkName)
-    --if slot == 1 then
-    --    slot = 13
-    --end
-    --if slot == 2 then
-    --    slot = 14
-    --end
-    for i=13,14 do
-        local itemID = GetInventoryItemID('player', i)
-        local itemName = C_Item.GetItemInfo(itemID)
-        if checkName == itemName then
-            return true
-        end
-    end
-    return false
-end
-
-
-local function CheckTrinketCooldown(slot)
-    if slot == 1 then
-        slot = 13
-    end
-    if slot == 2 then
-        slot = 14
-    end
-    if slot == 13 or slot == 14 then
-        local itemID = GetInventoryItemID('player', slot)
-        local _, duration, _ = C_Item.GetItemCooldown(itemID)
-        if duration == 0 then return true else return false end
-    else
-        local tOneitemID = GetInventoryItemID('player', 13)
-        local tTwoitemID = GetInventoryItemID('player', 14)
-        local tOneitemName = C_Item.GetItemInfo(tOneitemID)
-        local tTwoitemName = C_Item.GetItemInfo(tTwoitemID)
-        if tOneitemName == slot then
-            local _, duration, _ = C_Item.GetItemCooldown(tOneitemID)
-            if duration == 0 then return true else return false end
-        end
-        if tTwoitemName == slot then
-            local _, duration, _ = C_Item.GetItemCooldown(tTwoitemID)
-            if duration == 0 then return true else return false end
-        end
-    end
-end
-
-
-
-
-local function CheckPrevSpell(spell)
-    if MaxDps and MaxDps.spellHistory then
-        if MaxDps.spellHistory[1] then
-            if MaxDps.spellHistory[1] == spell then
-                return true
-            end
-            if MaxDps.spellHistory[1] ~= spell then
-                return false
-            end
-        end
-    end
-    return true
-end
-
 local function GetTotemDuration(name)
     for index=1,MAX_TOTEMS do
         local arg1, totemName, startTime, duration, icon = GetTotemInfo(index)
@@ -167,278 +80,278 @@ local function GetTotemDuration(name)
 end
 
 function Elemental:precombat()
-    --if (CheckSpellCosts(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (talents[classtable.ImprovedFlametongueWeapon]) and cooldown[classtable.FlametongueWeapon].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (talents[classtable.ImprovedFlametongueWeapon]) and cooldown[classtable.FlametongueWeapon].ready then
     --    return classtable.FlametongueWeapon
     --end
-    --if (CheckSpellCosts(classtable.ThunderstrikeWard, 'ThunderstrikeWard')) and cooldown[classtable.ThunderstrikeWard].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.ThunderstrikeWard, 'ThunderstrikeWard')) and cooldown[classtable.ThunderstrikeWard].ready then
     --    return classtable.ThunderstrikeWard
     --end
-    --if (CheckSpellCosts(classtable.Skyfury, 'Skyfury')) and cooldown[classtable.Skyfury].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.Skyfury, 'Skyfury')) and cooldown[classtable.Skyfury].ready then
     --    return classtable.Skyfury
     --end
-    if (CheckSpellCosts(classtable.Stormkeeper, 'Stormkeeper')) and cooldown[classtable.Stormkeeper].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Stormkeeper, 'Stormkeeper')) and cooldown[classtable.Stormkeeper].ready then
         MaxDps:GlowCooldown(classtable.Stormkeeper, cooldown[classtable.Stormkeeper].ready)
     end
-    --if (CheckSpellCosts(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready then
     --    return classtable.LightningShield
     --end
     mael_cap = 100 + 50 * (talents[classtable.SwellingMaelstrom] and talents[classtable.SwellingMaelstrom] or 0) + 25 * (talents[classtable.PrimordialCapacity] and talents[classtable.PrimordialCapacity] or 0)
-    spymaster_in_onest = CheckTrinketNames('SpymastersWeb')
-    spymaster_in_twond = CheckTrinketNames('SpymastersWeb')
+    spymaster_in_onest = MaxDps:CheckTrinketNames('SpymastersWeb')
+    spymaster_in_twond = MaxDps:CheckTrinketNames('SpymastersWeb')
 end
 function Elemental:aoe()
-    if (CheckSpellCosts(classtable.FireElemental, 'FireElemental')) and (not buff[classtable.FireElementalBuff].up) and cooldown[classtable.FireElemental].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElemental, 'FireElemental')) and (not buff[classtable.FireElementalBuff].up) and cooldown[classtable.FireElemental].ready then
         MaxDps:GlowCooldown(classtable.FireElemental, cooldown[classtable.FireElemental].ready)
     end
-    if (CheckSpellCosts(classtable.StormElemental, 'StormElemental')) and (not buff[classtable.StormElementalBuff].up) and cooldown[classtable.StormElemental].ready then
+    if (MaxDps:CheckSpellUsable(classtable.StormElemental, 'StormElemental')) and (not buff[classtable.StormElementalBuff].up) and cooldown[classtable.StormElemental].ready then
         MaxDps:GlowCooldown(classtable.StormElemental, cooldown[classtable.StormElemental].ready)
     end
-    if (CheckSpellCosts(classtable.Stormkeeper, 'Stormkeeper')) and (not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.Stormkeeper].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Stormkeeper, 'Stormkeeper')) and (not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.Stormkeeper].ready then
         MaxDps:GlowCooldown(classtable.Stormkeeper, cooldown[classtable.Stormkeeper].ready)
     end
-    if (CheckSpellCosts(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and talents[classtable.FireElemental]) and cooldown[classtable.TotemicRecall].ready then
+    if (MaxDps:CheckSpellUsable(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and talents[classtable.FireElemental]) and cooldown[classtable.TotemicRecall].ready then
         return classtable.TotemicRecall
     end
-    if (CheckSpellCosts(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and (GetTotemDuration('Liquid Magma Totem') == 0) and cooldown[classtable.LiquidMagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and (GetTotemDuration('Liquid Magma Totem') == 0) and cooldown[classtable.LiquidMagmaTotem].ready then
         return classtable.LiquidMagmaTotem
     end
-    if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and (buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] or Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0)) and cooldown[classtable.PrimordialWave].ready then
+    if (MaxDps:CheckSpellUsable(classtable.PrimordialWave, 'PrimordialWave')) and (buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] or Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0)) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
-    if (CheckSpellCosts(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
+    if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and talents[classtable.LightningRod] and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count  <( targets >6 ) and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and talents[classtable.LightningRod] and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count  <( targets >6 ) and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (buff[classtable.PrimordialWaveBuff].up and buff[classtable.StormkeeperBuff].up and Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) - ( 8 + 2 * (talents[classtable.FlowofPower] and talents[classtable.FlowofPower] or 0) ) * debuff[classtable.FlameShockDeBuff].count  and targets >= 6 and debuff[classtable.FlameShockDeBuff].count  <6) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (buff[classtable.PrimordialWaveBuff].up and buff[classtable.StormkeeperBuff].up and Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) - ( 8 + 2 * (talents[classtable.FlowofPower] and talents[classtable.FlowofPower] or 0) ) * debuff[classtable.FlameShockDeBuff].count  and targets >= 6 and debuff[classtable.FlameShockDeBuff].count  <6) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and talents[classtable.FireElemental] and ( buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] ) and debuff[classtable.FlameShockDeBuff].remains <ttd - 5 and ( debuff[classtable.FlameShockDeBuff].count  <6 or debuff[classtable.FlameShockDeBuff].remains >0 )) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and talents[classtable.FireElemental] and ( buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] ) and debuff[classtable.FlameShockDeBuff].remains <ttd - 5 and ( debuff[classtable.FlameShockDeBuff].count  <6 or debuff[classtable.FlameShockDeBuff].remains >0 )) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and (not buff[classtable.ArcDischargeBuff].up) and cooldown[classtable.Tempest].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (not buff[classtable.ArcDischargeBuff].up) and cooldown[classtable.Tempest].ready then
         return classtable.Tempest
     end
-    if (CheckSpellCosts(classtable.Ascendance, 'Ascendance')) and cooldown[classtable.Ascendance].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Ascendance, 'Ascendance')) and cooldown[classtable.Ascendance].ready then
         MaxDps:GlowCooldown(classtable.Ascendance, cooldown[classtable.Ascendance].ready)
     end
-    if (CheckSpellCosts(classtable.LavaBeam, 'LavaBeam')) and (targets >= 6 and buff[classtable.SurgeofPowerBuff].up and buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 )) and cooldown[classtable.LavaBeam].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBeam, 'LavaBeam')) and (targets >= 6 and buff[classtable.SurgeofPowerBuff].up and buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 )) and cooldown[classtable.LavaBeam].ready then
         return classtable.LavaBeam
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (targets >= 6 and buff[classtable.SurgeofPowerBuff].up) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >= 6 and buff[classtable.SurgeofPowerBuff].up) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.PrimordialWaveBuff].up and buff[classtable.StormkeeperBuff].up and Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) and targets >= 6 and talents[classtable.SurgeofPower]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.PrimordialWaveBuff].up and buff[classtable.StormkeeperBuff].up and Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) and targets >= 6 and talents[classtable.SurgeofPower]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.PrimordialWaveBuff].up and ( buff[classtable.PrimordialWaveBuff].remains <4 or buff[classtable.LavaSurgeBuff].up )) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.PrimordialWaveBuff].up and ( buff[classtable.PrimordialWaveBuff].remains <4 or buff[classtable.LavaSurgeBuff].up )) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains and cooldown[classtable.LavaBurst].ready and buff[classtable.LavaSurgeBuff].up and not buff[classtable.MasteroftheElementsBuff].up and talents[classtable.MasteroftheElements] and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains and cooldown[classtable.LavaBurst].ready and buff[classtable.LavaSurgeBuff].up and not buff[classtable.MasteroftheElementsBuff].up and talents[classtable.MasteroftheElements] and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (cooldown[classtable.PrimordialWave].remains <gcd and talents[classtable.SurgeofPower] and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (cooldown[classtable.PrimordialWave].remains <gcd and talents[classtable.SurgeofPower] and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (( debuff[classtable.LightningRodDeBuff].remains == 0 and talents[classtable.LightningRod] or Maelstrom >mael_cap - 30 ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( debuff[classtable.LightningRodDeBuff].remains == 0 and talents[classtable.LightningRod] or Maelstrom >mael_cap - 30 ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (buff[classtable.StormkeeperBuff].up and targets >= 6 and talents[classtable.SurgeofPower] and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (buff[classtable.StormkeeperBuff].up and targets >= 6 and talents[classtable.SurgeofPower] and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.MasteroftheElementsBuff].up or targets >= 5 ) and ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] ) and talents[classtable.FireElemental]) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.MasteroftheElementsBuff].up or targets >= 5 ) and ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] ) and talents[classtable.FireElemental]) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEsBuff].up and ( not buff[classtable.MaelstromSurgeBuff].up and (MaxDps.tier and MaxDps.tier[1].count >= 4) or Maelstrom >mael_cap - 30 )) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEsBuff].up and ( not buff[classtable.MaelstromSurgeBuff].up and (MaxDps.tier and MaxDps.tier[1].count >= 4) or Maelstrom >mael_cap - 30 )) and cooldown[classtable.EarthShock].ready then
         return classtable.EarthShock
     end
-    if (CheckSpellCosts(classtable.Icefury, 'Icefury')) and (talents[classtable.FusionofElements] and not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up )) and cooldown[classtable.Icefury].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Icefury, 'Icefury')) and (talents[classtable.FusionofElements] and not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up )) and cooldown[classtable.Icefury].ready then
         return classtable.Icefury
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.MasteroftheElements] and not buff[classtable.MasteroftheElementsBuff].up and not buff[classtable.AscendanceBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.MasteroftheElements] and not buff[classtable.MasteroftheElementsBuff].up and not buff[classtable.AscendanceBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering]) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering]) and cooldown[classtable.EarthShock].ready then
         return classtable.EarthShock
     end
-    if (CheckSpellCosts(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering]) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering]) and cooldown[classtable.EarthShock].ready then
         return classtable.EarthShock
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains and talents[classtable.MasteroftheElements] and not buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.StormkeeperBuff].up ) and ( Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) - 2 * (talents[classtable.FlowofPower] and talents[classtable.FlowofPower] or 0) - 10 ) and targets <5) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains and talents[classtable.MasteroftheElements] and not buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.StormkeeperBuff].up ) and ( Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) - 2 * (talents[classtable.FlowofPower] and talents[classtable.FlowofPower] or 0) - 10 ) and targets <5) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBeam, 'LavaBeam')) and (buff[classtable.StormkeeperBuff].up and ( buff[classtable.SurgeofPowerBuff].up or targets <6 )) and cooldown[classtable.LavaBeam].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBeam, 'LavaBeam')) and (buff[classtable.StormkeeperBuff].up and ( buff[classtable.SurgeofPowerBuff].up or targets <6 )) and cooldown[classtable.LavaBeam].ready then
         return classtable.LavaBeam
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.StormkeeperBuff].up and ( buff[classtable.SurgeofPowerBuff].up or targets <6 )) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.StormkeeperBuff].up and ( buff[classtable.SurgeofPowerBuff].up or targets <6 )) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.LavaBeam, 'LavaBeam')) and (buff[classtable.PoweroftheMaelstromBuff].up and buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 ) and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.LavaBeam].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBeam, 'LavaBeam')) and (buff[classtable.PoweroftheMaelstromBuff].up and buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 ) and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.LavaBeam].ready then
         return classtable.LavaBeam
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.PoweroftheMaelstromBuff].up and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.PoweroftheMaelstromBuff].up and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.LavaBeam, 'LavaBeam')) and (( buff[classtable.MasteroftheElementsBuff].up and targets >= 4 or targets >= 5 ) and buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 ) and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.LavaBeam].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBeam, 'LavaBeam')) and (( buff[classtable.MasteroftheElementsBuff].up and targets >= 4 or targets >= 5 ) and buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 ) and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.LavaBeam].ready then
         return classtable.LavaBeam
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.DeeplyRootedElements]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.DeeplyRootedElements]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBeam, 'LavaBeam')) and (buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 )) and cooldown[classtable.LavaBeam].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBeam, 'LavaBeam')) and (buff[classtable.AscendanceBuff].remains >( classtable and classtable.LavaBeam and GetSpellInfo(classtable.LavaBeam).castTime /1000 )) and cooldown[classtable.LavaBeam].ready then
         return classtable.LavaBeam
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
         return classtable.FrostShock
     end
 end
 function Elemental:single_target()
-    if (CheckSpellCosts(classtable.FireElemental, 'FireElemental')) and (not buff[classtable.FireElementalBuff].up) and cooldown[classtable.FireElemental].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElemental, 'FireElemental')) and (not buff[classtable.FireElementalBuff].up) and cooldown[classtable.FireElemental].ready then
         MaxDps:GlowCooldown(classtable.FireElemental, cooldown[classtable.FireElemental].ready)
     end
-    if (CheckSpellCosts(classtable.StormElemental, 'StormElemental')) and (not buff[classtable.StormElementalBuff].up) and cooldown[classtable.StormElemental].ready then
+    if (MaxDps:CheckSpellUsable(classtable.StormElemental, 'StormElemental')) and (not buff[classtable.StormElementalBuff].up) and cooldown[classtable.StormElemental].ready then
         MaxDps:GlowCooldown(classtable.StormElemental, cooldown[classtable.StormElemental].ready)
     end
-    if (CheckSpellCosts(classtable.Stormkeeper, 'Stormkeeper')) and (not buff[classtable.AscendanceBuff].up and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.Stormkeeper].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Stormkeeper, 'Stormkeeper')) and (not buff[classtable.AscendanceBuff].up and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.Stormkeeper].ready then
         MaxDps:GlowCooldown(classtable.Stormkeeper, cooldown[classtable.Stormkeeper].ready)
     end
-    if (CheckSpellCosts(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and targets >1 and talents[classtable.FireElemental]) and cooldown[classtable.TotemicRecall].ready then
+    if (MaxDps:CheckSpellUsable(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and targets >1 and talents[classtable.FireElemental]) and cooldown[classtable.TotemicRecall].ready then
         return classtable.TotemicRecall
     end
-    if (CheckSpellCosts(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and (not buff[classtable.AscendanceBuff].up and ( talents[classtable.FireElemental] or targets >1 )) and cooldown[classtable.LiquidMagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and (not buff[classtable.AscendanceBuff].up and ( talents[classtable.FireElemental] or targets >1 )) and cooldown[classtable.LiquidMagmaTotem].ready then
         return classtable.LiquidMagmaTotem
     end
-    if (CheckSpellCosts(classtable.PrimordialWave, 'PrimordialWave')) and cooldown[classtable.PrimordialWave].ready then
+    if (MaxDps:CheckSpellUsable(classtable.PrimordialWave, 'PrimordialWave')) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
-    if (CheckSpellCosts(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
+    if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (targets == 1 and ( debuff[classtable.FlameShockDeBuff].remains <2 or debuff[classtable.FlameShockDeBuff].count  == 0 ) and ( debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.PrimordialWave].remains or not talents[classtable.PrimordialWave] ) and ( debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.LiquidMagmaTotem].remains or not talents[classtable.LiquidMagmaTotem] ) and not buff[classtable.SurgeofPowerBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (targets == 1 and ( debuff[classtable.FlameShockDeBuff].remains <2 or debuff[classtable.FlameShockDeBuff].count  == 0 ) and ( debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.PrimordialWave].remains or not talents[classtable.PrimordialWave] ) and ( debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.LiquidMagmaTotem].remains or not talents[classtable.LiquidMagmaTotem] ) and not buff[classtable.SurgeofPowerBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].count  <targets and targets >1 and ( talents[classtable.DeeplyRootedElements] or talents[classtable.Ascendance] or talents[classtable.PrimordialWave] or talents[classtable.SearingFlames] or talents[classtable.MagmaChamber] ) and ( not buff[classtable.SurgeofPowerBuff].up and buff[classtable.StormkeeperBuff].up or not talents[classtable.SurgeofPower] or cooldown[classtable.Ascendance].remains == 0 )) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].count  <targets and targets >1 and ( talents[classtable.DeeplyRootedElements] or talents[classtable.Ascendance] or talents[classtable.PrimordialWave] or talents[classtable.SearingFlames] or talents[classtable.MagmaChamber] ) and ( not buff[classtable.SurgeofPowerBuff].up and buff[classtable.StormkeeperBuff].up or not talents[classtable.SurgeofPower] or cooldown[classtable.Ascendance].remains == 0 )) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (targets >1 and ( talents[classtable.DeeplyRootedElements] or talents[classtable.Ascendance] or talents[classtable.PrimordialWave] or talents[classtable.SearingFlames] or talents[classtable.MagmaChamber] ) and ( buff[classtable.SurgeofPowerBuff].up and not buff[classtable.StormkeeperBuff].up or not talents[classtable.SurgeofPower] ) and debuff[classtable.FlameShockDeBuff].remains <6) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (targets >1 and ( talents[classtable.DeeplyRootedElements] or talents[classtable.Ascendance] or talents[classtable.PrimordialWave] or talents[classtable.SearingFlames] or talents[classtable.MagmaChamber] ) and ( buff[classtable.SurgeofPowerBuff].up and not buff[classtable.StormkeeperBuff].up or not talents[classtable.SurgeofPower] ) and debuff[classtable.FlameShockDeBuff].remains <6) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.Tempest, 'Tempest')) and cooldown[classtable.Tempest].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and cooldown[classtable.Tempest].ready then
         return classtable.Tempest
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.StormkeeperBuff].up and buff[classtable.SurgeofPowerBuff].up) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.StormkeeperBuff].up and buff[classtable.SurgeofPowerBuff].up) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.StormkeeperBuff].up and not buff[classtable.MasteroftheElementsBuff].up and not talents[classtable.SurgeofPower] and talents[classtable.MasteroftheElements]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.StormkeeperBuff].up and not buff[classtable.MasteroftheElementsBuff].up and not talents[classtable.SurgeofPower] and talents[classtable.MasteroftheElements]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.StormkeeperBuff].up and not talents[classtable.SurgeofPower] and ( buff[classtable.MasteroftheElementsBuff].up or not talents[classtable.MasteroftheElements] )) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.StormkeeperBuff].up and not talents[classtable.SurgeofPower] and ( buff[classtable.MasteroftheElementsBuff].up or not talents[classtable.MasteroftheElements] )) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.SurgeofPowerBuff].up and not buff[classtable.AscendanceBuff].up and talents[classtable.EchoChamber]) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.SurgeofPowerBuff].up and not buff[classtable.AscendanceBuff].up and talents[classtable.EchoChamber]) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.Ascendance, 'Ascendance')) and (cooldown[classtable.LavaBurst].charges <1.0) and cooldown[classtable.Ascendance].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Ascendance, 'Ascendance')) and (cooldown[classtable.LavaBurst].charges <1.0) and cooldown[classtable.Ascendance].ready then
         MaxDps:GlowCooldown(classtable.Ascendance, cooldown[classtable.Ascendance].ready)
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (cooldown[classtable.LavaBurst].ready and buff[classtable.LavaSurgeBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (cooldown[classtable.LavaBurst].ready and buff[classtable.LavaSurgeBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.PrimordialWaveBuff].up) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.PrimordialWaveBuff].up) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or targets >1 and not talents[classtable.EchoesofGreatSundering] and not talents[classtable.ElementalBlast] ) and ( buff[classtable.FusionofElementsNatureBuff].up or Maelstrom >mael_cap - 15 or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and talents[classtable.FireElemental]) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or targets >1 and not talents[classtable.EchoesofGreatSundering] and not talents[classtable.ElementalBlast] ) and ( buff[classtable.FusionofElementsNatureBuff].up or Maelstrom >mael_cap - 15 or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and talents[classtable.FireElemental]) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up or Maelstrom >mael_cap - 15 or buff[classtable.AscendanceBuff].remains >6 or not buff[classtable.AscendanceBuff].up ) and talents[classtable.FireElemental]) and cooldown[classtable.ElementalBlast].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up or Maelstrom >mael_cap - 15 or buff[classtable.AscendanceBuff].remains >6 or not buff[classtable.AscendanceBuff].up ) and talents[classtable.FireElemental]) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
-    if (CheckSpellCosts(classtable.EarthShock, 'EarthShock')) and (buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.FusionofElementsNatureBuff].up or Maelstrom >mael_cap - 15 or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and talents[classtable.FireElemental]) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.MasteroftheElementsBuff].up and ( buff[classtable.FusionofElementsNatureBuff].up or Maelstrom >mael_cap - 15 or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and talents[classtable.FireElemental]) and cooldown[classtable.EarthShock].ready then
         return classtable.EarthShock
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or targets >1 and not talents[classtable.EchoesofGreatSundering] and not talents[classtable.ElementalBlast] ) and ( buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.Stormkeeper].remains >10 or Maelstrom >mael_cap - 15 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental]) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or targets >1 and not talents[classtable.EchoesofGreatSundering] and not talents[classtable.ElementalBlast] ) and ( buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.Stormkeeper].remains >10 or Maelstrom >mael_cap - 15 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental]) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (( buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.Stormkeeper].remains >10 or Maelstrom >mael_cap - 15 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental]) and cooldown[classtable.ElementalBlast].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (( buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.Stormkeeper].remains >10 or Maelstrom >mael_cap - 15 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental]) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
-    if (CheckSpellCosts(classtable.EarthShock, 'EarthShock')) and (( buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.Stormkeeper].remains >10 or Maelstrom >mael_cap - 15 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental]) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (( buff[classtable.MasteroftheElementsBuff].up and cooldown[classtable.Stormkeeper].remains >10 or Maelstrom >mael_cap - 15 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental]) and cooldown[classtable.EarthShock].ready then
         return classtable.EarthShock
     end
-    if (CheckSpellCosts(classtable.Icefury, 'Icefury')) and (not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up ) and buff[classtable.IcefuryBuff].count == 2 and ( talents[classtable.FusionofElements] or not buff[classtable.AscendanceBuff].up )) and cooldown[classtable.Icefury].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Icefury, 'Icefury')) and (not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up ) and buff[classtable.IcefuryBuff].count == 2 and ( talents[classtable.FusionofElements] or not buff[classtable.AscendanceBuff].up )) and cooldown[classtable.Icefury].ready then
         return classtable.Icefury
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.AscendanceBuff].up) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.AscendanceBuff].up) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.MasteroftheElements] and not buff[classtable.MasteroftheElementsBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.MasteroftheElements] and not buff[classtable.MasteroftheElementsBuff].up and talents[classtable.FireElemental]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.StormkeeperBuff].up and ( buff[classtable.LavaSurgeBuff].up or timeInCombat <10 )) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and buff[classtable.StormkeeperBuff].up and ( buff[classtable.LavaSurgeBuff].up or timeInCombat <10 )) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or targets >1 and not talents[classtable.EchoesofGreatSundering] and not talents[classtable.ElementalBlast] ) and ( Maelstrom >mael_cap - 15 or debuff[classtable.LightningRodDeBuff].remains <gcd or ttd <5 )) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or targets >1 and not talents[classtable.EchoesofGreatSundering] and not talents[classtable.ElementalBlast] ) and ( Maelstrom >mael_cap - 15 or debuff[classtable.LightningRodDeBuff].remains <gcd or ttd <5 )) and cooldown[classtable.Earthquake].ready then
         return classtable.Earthquake
     end
-    if (CheckSpellCosts(classtable.ElementalBlast, 'ElementalBlast')) and (Maelstrom >mael_cap - 15 or debuff[classtable.LightningRodDeBuff].remains <gcd or ttd <5) and cooldown[classtable.ElementalBlast].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (Maelstrom >mael_cap - 15 or debuff[classtable.LightningRodDeBuff].remains <gcd or ttd <5) and cooldown[classtable.ElementalBlast].ready then
         return classtable.ElementalBlast
     end
-    if (CheckSpellCosts(classtable.EarthShock, 'EarthShock')) and (Maelstrom >mael_cap - 15 or debuff[classtable.LightningRodDeBuff].remains <gcd or ttd <5) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (Maelstrom >mael_cap - 15 or debuff[classtable.LightningRodDeBuff].remains <gcd or ttd <5) and cooldown[classtable.EarthShock].ready then
         return classtable.EarthShock
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.SurgeofPowerBuff].up) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.SurgeofPowerBuff].up) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.Icefury, 'Icefury')) and (not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up )) and cooldown[classtable.Icefury].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Icefury, 'Icefury')) and (not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up )) and cooldown[classtable.Icefury].ready then
         return classtable.Icefury
     end
-    if (CheckSpellCosts(classtable.FrostShock, 'FrostShock')) and (buff[classtable.IcefuryDmgBuff].up and ( targets == 1 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.SurgeofPower]) and cooldown[classtable.FrostShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FrostShock, 'FrostShock')) and (buff[classtable.IcefuryDmgBuff].up and ( targets == 1 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.SurgeofPower]) and cooldown[classtable.FrostShock].ready then
         return classtable.FrostShock
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.PoweroftheMaelstromBuff].up and targets >1 and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (buff[classtable.PoweroftheMaelstromBuff].up and targets >1 and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.PoweroftheMaelstromBuff].up and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.PoweroftheMaelstromBuff].up and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.DeeplyRootedElements]) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2 and talents[classtable.DeeplyRootedElements]) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (targets >1) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >1) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
         return classtable.FrostShock
     end
 end
 
 function Elemental:callaction()
-    if (CheckSpellCosts(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.SpiritwalkersGrace].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.SpiritwalkersGrace].ready then
         MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, cooldown[classtable.SpiritwalkersGrace].ready)
     end
-    if (CheckSpellCosts(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
+    if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
         MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
     end
-    if (CheckSpellCosts(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready then
         return classtable.LightningShield
     end
-    if (CheckSpellCosts(classtable.NaturesSwiftness, 'NaturesSwiftness')) and cooldown[classtable.NaturesSwiftness].ready then
+    if (MaxDps:CheckSpellUsable(classtable.NaturesSwiftness, 'NaturesSwiftness')) and cooldown[classtable.NaturesSwiftness].ready then
         MaxDps:GlowCooldown(classtable.NaturesSwiftness, cooldown[classtable.NaturesSwiftness].ready)
     end
     if (targets >2) then

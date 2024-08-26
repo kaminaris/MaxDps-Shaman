@@ -67,94 +67,53 @@ local ManaDeficit
 
 local Restoration = {}
 
-
-local function CheckSpellCosts(spell,spellstring)
-    if not IsSpellKnown(spell) then return false end
-    if not C_Spell.IsSpellUsable(spell) then return false end
-    local costs = C_Spell.GetSpellPowerCost(spell)
-    if type(costs) ~= 'table' and spellstring then return true end
-    for i,costtable in pairs(costs) do
-        if UnitPower('player', costtable.type) < costtable.cost then
-            return false
-        end
-    end
-    return true
-end
-local function MaxGetSpellCost(spell,power)
-    local costs = C_Spell.GetSpellPowerCost(spell)
-    if type(costs) ~= 'table' then return 0 end
-    for i,costtable in pairs(costs) do
-        if costtable.name == power then
-            return costtable.cost
-        end
-    end
-    return 0
-end
-
-
-
-local function CheckPrevSpell(spell)
-    if MaxDps and MaxDps.spellHistory then
-        if MaxDps.spellHistory[1] then
-            if MaxDps.spellHistory[1] == spell then
-                return true
-            end
-            if MaxDps.spellHistory[1] ~= spell then
-                return false
-            end
-        end
-    end
-    return true
-end
-
-
 function Restoration:precombat()
-    --if (CheckSpellCosts(classtable.EarthlivingWeapon, 'EarthlivingWeapon')) and cooldown[classtable.EarthlivingWeapon].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.EarthlivingWeapon, 'EarthlivingWeapon')) and cooldown[classtable.EarthlivingWeapon].ready then
     --    return classtable.EarthlivingWeapon
     --end
-    --if (CheckSpellCosts(classtable.WaterShield, 'WaterShield')) and (buff[classtable.WaterShieldBuff].up + buff[classtable.EarthShieldBuff].duration + buff[classtable.LightningShieldBuff].duration <1 + talents[classtable.ElementalOrbit]) and cooldown[classtable.WaterShield].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.WaterShield, 'WaterShield')) and (buff[classtable.WaterShieldBuff].up + buff[classtable.EarthShieldBuff].duration + buff[classtable.LightningShieldBuff].duration <1 + talents[classtable.ElementalOrbit]) and cooldown[classtable.WaterShield].ready then
     --    return classtable.WaterShield
     --end
-    --if (CheckSpellCosts(classtable.LightningShield, 'LightningShield')) and (buff[classtable.WaterShieldBuff].up + buff[classtable.EarthShieldBuff].duration + buff[classtable.LightningShieldBuff].duration <1 + talents[classtable.ElementalOrbit]) and cooldown[classtable.LightningShield].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (buff[classtable.WaterShieldBuff].up + buff[classtable.EarthShieldBuff].duration + buff[classtable.LightningShieldBuff].duration <1 + talents[classtable.ElementalOrbit]) and cooldown[classtable.LightningShield].ready then
     --    return classtable.LightningShield
     --end
-    --if (CheckSpellCosts(classtable.EarthShield, 'EarthShield')) and (buff[classtable.WaterShieldBuff].up + buff[classtable.EarthShieldBuff].duration + buff[classtable.LightningShieldBuff].duration <1 + talents[classtable.ElementalOrbit]) and cooldown[classtable.EarthShield].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.EarthShield, 'EarthShield')) and (buff[classtable.WaterShieldBuff].up + buff[classtable.EarthShieldBuff].duration + buff[classtable.LightningShieldBuff].duration <1 + talents[classtable.ElementalOrbit]) and cooldown[classtable.EarthShield].ready then
     --    return classtable.EarthShield
     --end
-    --if (CheckSpellCosts(classtable.EarthElemental, 'EarthElemental')) and cooldown[classtable.EarthElemental].ready then
+    --if (MaxDps:CheckSpellUsable(classtable.EarthElemental, 'EarthElemental')) and cooldown[classtable.EarthElemental].ready then
     --    MaxDps:GlowCooldown(classtable.EarthElemental, cooldown[classtable.EarthElemental].ready)
     --end
 end
 
 function Restoration:callaction()
-    if (CheckSpellCosts(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.SpiritwalkersGrace].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.SpiritwalkersGrace].ready then
         MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, cooldown[classtable.SpiritwalkersGrace].ready)
     end
-    if (CheckSpellCosts(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
+    if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
         MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
     end
-    if (CheckSpellCosts(classtable.HealingRain, 'HealingRain')) and (talents[classtable.AcidRain]) and cooldown[classtable.HealingRain].ready then
+    if (MaxDps:CheckSpellUsable(classtable.HealingRain, 'HealingRain')) and (talents[classtable.AcidRain]) and cooldown[classtable.HealingRain].ready then
         return classtable.HealingRain
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and (targets <3 and debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (targets <3 and debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.LavaBurst, 'LavaBurst')) and (( targets == 1 or targets == 2 and buff[classtable.LavaSurgeBuff].up ) and debuff[classtable.FlameShockDeBuff].remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 ) and cooldown[classtable.LavaBurst].ready) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (( targets == 1 or targets == 2 and buff[classtable.LavaSurgeBuff].up ) and debuff[classtable.FlameShockDeBuff].remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 ) and cooldown[classtable.LavaBurst].ready) and cooldown[classtable.LavaBurst].ready then
         return classtable.LavaBurst
     end
-    if (CheckSpellCosts(classtable.EarthElemental, 'EarthElemental')) and cooldown[classtable.EarthElemental].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthElemental, 'EarthElemental')) and cooldown[classtable.EarthElemental].ready then
         MaxDps:GlowCooldown(classtable.EarthElemental, cooldown[classtable.EarthElemental].ready)
     end
-    if (CheckSpellCosts(classtable.LightningBolt, 'LightningBolt')) and (targets <2 or not talents[classtable.ChainLightning]) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (targets <2 or not talents[classtable.ChainLightning]) and cooldown[classtable.LightningBolt].ready then
         return classtable.LightningBolt
     end
-    if (CheckSpellCosts(classtable.ChainLightning, 'ChainLightning')) and (targets >1) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >1) and cooldown[classtable.ChainLightning].ready then
         return classtable.ChainLightning
     end
-    if (CheckSpellCosts(classtable.FlameShock, 'FlameShock')) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and cooldown[classtable.FlameShock].ready then
         return classtable.FlameShock
     end
-    if (CheckSpellCosts(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
         return classtable.FrostShock
     end
 end
