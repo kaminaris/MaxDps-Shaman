@@ -392,6 +392,7 @@ function Shaman:Elemental()
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
     classtable.Icefury = 210714
+    classtable.LavaBeam = 114074
     for spellId in pairs(MaxDps.Flags) do
         self.Flags[spellId] = false
         self:ClearGlowIndependent(spellId, spellId)
