@@ -139,7 +139,7 @@ function Enhancement:callaction()
     if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and cooldown[classtable.EarthElementalTotem].ready then
         if not setSpell then setSpell = classtable.EarthElementalTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (target.adds >1) and cooldown[classtable.FireNova].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (targets >1) and cooldown[classtable.FireNova].ready then
         if not setSpell then setSpell = classtable.FireNova end
     end
     if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
