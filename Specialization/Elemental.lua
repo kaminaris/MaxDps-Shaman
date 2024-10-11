@@ -83,25 +83,25 @@ end
 
 
 function Elemental:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (talents[classtable.ImprovedFlametongueWeapon]) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (talents[classtable.ImprovedFlametongueWeapon] and not buff[classtable.ImprovedFlametongueWeaponBuff].up) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Skyfury, 'Skyfury')) and cooldown[classtable.Skyfury].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.Skyfury end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.LightningShield end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.ThunderstrikeWard, 'ThunderstrikeWard')) and cooldown[classtable.ThunderstrikeWard].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.ThunderstrikeWard end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.Stormkeeper, 'Stormkeeper')) and cooldown[classtable.Stormkeeper].ready and not UnitAffectingCombat('player') then
-        MaxDps:GlowCooldown(classtable.Stormkeeper, cooldown[classtable.Stormkeeper].ready)
-    end
+    --if (MaxDps:CheckSpellUsable(classtable.Skyfury, 'Skyfury')) and cooldown[classtable.Skyfury].ready and not UnitAffectingCombat('player') then
+    --    if not setSpell then setSpell = classtable.Skyfury end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
+    --    if not setSpell then setSpell = classtable.LightningShield end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.ThunderstrikeWard, 'ThunderstrikeWard')) and cooldown[classtable.ThunderstrikeWard].ready and not UnitAffectingCombat('player') then
+    --    if not setSpell then setSpell = classtable.ThunderstrikeWard end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.Stormkeeper, 'Stormkeeper')) and cooldown[classtable.Stormkeeper].ready and not UnitAffectingCombat('player') then
+    --    MaxDps:GlowCooldown(classtable.Stormkeeper, cooldown[classtable.Stormkeeper].ready)
+    --end
     --if (MaxDps:CheckSpellUsable(classtable.EarthShield, 'EarthShield')) and (not buff[classtable.EarthShieldBuff].up and talents[classtable.ElementalOrbit]) and cooldown[classtable.EarthShield].ready and not UnitAffectingCombat('player') then
     --    if not setSpell then setSpell = classtable.EarthShield end
     --end
-    mael_cap = 100 + 50 * (talents[classtable.SwellingMaelstrom] and talents[classtable.SwellingMaelstrom] or 0) + 25 * talents[classtable.PrimordialCapacity]
+    mael_cap = 100 + 50 * (talents[classtable.SwellingMaelstrom] and talents[classtable.SwellingMaelstrom] or 1) + 25 * (talents[classtable.PrimordialCapacity] and talents[classtable.PrimordialCapacity] or 1)
     spymaster_in_onest = MaxDps:CheckTrinketNames('SpymastersWeb')
     spymaster_in_twond = MaxDps:CheckTrinketNames('SpymastersWeb')
 end
@@ -225,7 +225,7 @@ function Elemental:single_target()
     if (MaxDps:CheckSpellUsable(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and targets >1 and talents[classtable.FireElemental]) and cooldown[classtable.TotemicRecall].ready then
         if not setSpell then setSpell = classtable.TotemicRecall end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and (not totem.liquid_magma_totem.active and not buff[classtable.AscendanceBuff].up and ( talents[classtable.FireElemental] or targets >1 )) and cooldown[classtable.LiquidMagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and (not (GetTotemDuration("Liquid Magma Totem") > 0) and not buff[classtable.AscendanceBuff].up and ( talents[classtable.FireElemental] or targets >1 )) and cooldown[classtable.LiquidMagmaTotem].ready then
         if not setSpell then setSpell = classtable.LiquidMagmaTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.PrimordialWave, 'PrimordialWave')) and (targets == 1 or buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] or Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) or talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.PrimordialWave].ready then
@@ -361,7 +361,7 @@ function Elemental:callaction()
     if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
         MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
     end
-    if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.SpiritwalkersGrace].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and ((LibRangeCheck and LibRangeCheck:GetRange('target', true) or 0) >6) and cooldown[classtable.SpiritwalkersGrace].ready then
         MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, cooldown[classtable.SpiritwalkersGrace].ready)
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready then
@@ -403,6 +403,7 @@ function Shaman:Elemental()
     MaelstromDeficit = MaelstromMax - Maelstrom
     classtable.Icefury = 210714
     classtable.LavaBeam = 114074
+    classtable.ImprovedFlametongueWeaponBuff = 382028
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
