@@ -160,7 +160,7 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (cooldown[classtable.PrimordialWave].remains <gcd and talents[classtable.SurgeofPower] and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
         if not setSpell then setSpell = classtable.Earthquake end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( lightning_rod == 0 and talents[classtable.LightningRod] or Maelstrom >mael_cap - 30 ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( not buff[classtable.LightningRod].up and talents[classtable.LightningRod] or Maelstrom >mael_cap - 30 ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
         if not setSpell then setSpell = classtable.Earthquake end
     end
     if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (buff[classtable.StormkeeperBuff].up and targets >= 6 and talents[classtable.SurgeofPower] and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] )) and cooldown[classtable.Earthquake].ready then
@@ -169,10 +169,10 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (( buff[classtable.MasteroftheElementsBuff].up or targets >= 5 ) and ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.AscendanceBuff].remains >9 or not buff[classtable.AscendanceBuff].up ) and ( buff[classtable.EchoesofGreatSunderingEsBuff].up or buff[classtable.EchoesofGreatSunderingEbBuff].up or not talents[classtable.EchoesofGreatSundering] ) and talents[classtable.FireElemental]) and cooldown[classtable.Earthquake].ready then
         if not setSpell then setSpell = classtable.Earthquake end
     end
-    if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEbBuff].up and ( lightning_rod == 0 or Maelstrom >mael_cap - 30 )) and cooldown[classtable.ElementalBlast].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEbBuff].up and ( not buff[classtable.LightningRod].up or Maelstrom >mael_cap - 30 )) and cooldown[classtable.ElementalBlast].ready then
         if not setSpell then setSpell = classtable.ElementalBlast end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEsBuff].up and ( lightning_rod == 0 or Maelstrom >mael_cap - 30 )) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEsBuff].up and ( not buff[classtable.LightningRod].up or Maelstrom >mael_cap - 30 )) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.Icefury, 'Icefury')) and (talents[classtable.FusionofElements] and not ( buff[classtable.FusionofElementsNatureBuff].up or buff[classtable.FusionofElementsFireBuff].up )) and cooldown[classtable.Icefury].ready then
@@ -282,7 +282,7 @@ function Elemental:single_target()
     if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.StormkeeperBuff].up and talents[classtable.StormElemental]) and cooldown[classtable.ElementalBlast].ready then
         if not setSpell then setSpell = classtable.ElementalBlast end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (( ( buff[classtable.MasteroftheElementsBuff].up or lightning_rod == 0 ) and cooldown[classtable.Stormkeeper].remains >10 and ( rolling_thunder.next_tick >5 or not talents[classtable.RollingThunder] ) or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental] and targets == 1) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (( ( buff[classtable.MasteroftheElementsBuff].up or not buff[classtable.LightningRod].up ) and cooldown[classtable.Stormkeeper].remains >10 or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental] and targets == 1) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (( cooldown[classtable.PrimordialWave].remains <gcd and talents[classtable.SurgeofPower] and not talents[classtable.LiquidMagmaTotem] or buff[classtable.StormkeeperBuff].up ) and talents[classtable.StormElemental] and targets >1 and talents[classtable.EchoesofGreatSundering] and not buff[classtable.EchoesofGreatSunderingEsBuff].up) and cooldown[classtable.EarthShock].ready then
