@@ -127,7 +127,7 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and talents[classtable.LightningRod] and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count  <( targets >6 ) and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and talents[classtable.LightningRod] and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count  <( targets >6 and 1 or 0) and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.PrimordialWaveBuff].up and buff[classtable.StormkeeperBuff].up and Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) - ( 8 + 2 * (talents[classtable.FlowofPower] and talents[classtable.FlowofPower] or 0) ) * debuff[classtable.FlameShockDeBuff].count  and targets >= 6 and debuff[classtable.FlameShockDeBuff].count  <6) and cooldown[classtable.FlameShock].ready then
