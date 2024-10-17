@@ -85,24 +85,27 @@ local function ClearCDs()
 end
 
 function Enhancement:callaction()
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and cooldown[classtable.WindfuryWeapon].ready then
-        if not setSpell then setSpell = classtable.WindfuryWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and cooldown[classtable.FlametongueWeapon].ready then
-        if not setSpell then setSpell = classtable.FlametongueWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.StrengthofEarthTotem, 'StrengthofEarthTotem')) and cooldown[classtable.StrengthofEarthTotem].ready then
-        if not setSpell then setSpell = classtable.StrengthofEarthTotem end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryTotem, 'WindfuryTotem')) and cooldown[classtable.WindfuryTotem].ready then
-        if not setSpell then setSpell = classtable.WindfuryTotem end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.ManaSpringTotem, 'ManaSpringTotem')) and cooldown[classtable.ManaSpringTotem].ready then
-        if not setSpell then setSpell = classtable.ManaSpringTotem end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready then
-        if not setSpell then setSpell = classtable.LightningShield end
-    end
+    --if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and cooldown[classtable.WindfuryWeapon].ready then
+    --    if not setSpell then setSpell = classtable.WindfuryWeapon end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and cooldown[classtable.FlametongueWeapon].ready then
+    --    if not setSpell then setSpell = classtable.FlametongueWeapon end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.StrengthofEarthTotem, 'StrengthofEarthTotem')) and cooldown[classtable.StrengthofEarthTotem].ready then
+    --    if not setSpell then setSpell = classtable.StrengthofEarthTotem end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.WindfuryTotem, 'WindfuryTotem')) and cooldown[classtable.WindfuryTotem].ready then
+    --    if not setSpell then setSpell = classtable.WindfuryTotem end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.ManaSpringTotem, 'ManaSpringTotem')) and cooldown[classtable.ManaSpringTotem].ready then
+    --    if not setSpell then setSpell = classtable.ManaSpringTotem end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready then
+    --    if not setSpell then setSpell = classtable.LightningShield end
+    --end
+    --if (MaxDps:CheckSpellUsable(classtable.TolvirPotion, 'TolvirPotion')) and (not UnitAffectingCombat('player') or MaxDps:Bloodlust() or ttd <= 40) and cooldown[classtable.TolvirPotion].ready then
+    --    if not setSpell then setSpell = classtable.TolvirPotion end
+    --end
     if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
         MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
     end
