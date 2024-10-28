@@ -148,7 +148,7 @@ function Shaman:Restoration()
     Maelstrom = UnitPower('player', MaelstromPT)
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
-    classtable.FlameShock = MaxDps:FindSpell(118389) and 118389 or MaxDps:FindSpell(470411) and 470411
+    classtable.FlameShock = MaxDps:FindSpell(118389) and 118389 or MaxDps:FindSpell(470411) and 470411 or 118389
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
