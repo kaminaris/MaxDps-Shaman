@@ -429,7 +429,7 @@ function Shaman:Elemental()
     classtable.FusionofElementsFireBuff = 0
     classtable.PoweroftheMaelstromBuff = 191877
     classtable.IcefuryBuff = 462818
-    classtable.IcefuryDmgBuff = 0
+    classtable.IcefuryDmgBuff = 210714
     classtable.LightningShieldBuff = 192106
     setSpell = nil
     ClearCDs()
