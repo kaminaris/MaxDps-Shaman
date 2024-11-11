@@ -127,7 +127,7 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and talents[classtable.LightningRod] and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count  <( targets >6 and 1 or 0) and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and talents[classtable.LightningRod] and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.PrimordialWaveBuff].up and buff[classtable.StormkeeperBuff].up and Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 0) - ( 8 + 2 * (talents[classtable.FlowofPower] and talents[classtable.FlowofPower] or 0) ) * debuff[classtable.FlameShockDeBuff].count  and targets >= 6 and debuff[classtable.FlameShockDeBuff].count  <6) and cooldown[classtable.FlameShock].ready then
@@ -330,9 +330,9 @@ function Elemental:single_target()
     if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >1 and not buff[classtable.StormkeeperBuff].up) and cooldown[classtable.ChainLightning].ready then
         if not setSpell then setSpell = classtable.ChainLightning end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
-        if not setSpell then setSpell = classtable.LightningBolt end
-    end
+    --if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
+    --    if not setSpell then setSpell = classtable.LightningBolt end
+    --end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
@@ -341,6 +341,9 @@ function Elemental:single_target()
     end
     if (MaxDps:CheckSpellUsable(classtable.FrostShock, 'FrostShock')) and cooldown[classtable.FrostShock].ready then
         if not setSpell then setSpell = classtable.FrostShock end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
+        if not setSpell then setSpell = classtable.LightningBolt end
     end
 end
 
@@ -404,6 +407,7 @@ function Shaman:Elemental()
     classtable.Icefury = 210714
     classtable.LavaBeam = 114074
     classtable.ImprovedFlametongueWeaponBuff = 382028
+    classtable.FlameShock = 470411
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
