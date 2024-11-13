@@ -187,6 +187,7 @@ function Shaman:Enhancement()
     classtable.MaelstromWeaponBuff = 344179
     classtable.FlameShockDeBuff = 188389
     classtable.UnleashFlameBuff = 0
+	classtable.LavaLash = 78146
     setSpell = nil
     ClearCDs()
 
