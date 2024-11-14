@@ -121,7 +121,7 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and ((GetTotemDuration('liquid_magma_totem') == 0)) and cooldown[classtable.LiquidMagmaTotem].ready then
         if not setSpell then setSpell = classtable.LiquidMagmaTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.PrimordialWave, 'PrimordialWave')) and (buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] or Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] or 1)) and cooldown[classtable.PrimordialWave].ready then
+    if (MaxDps:CheckSpellUsable(classtable.PrimordialWave, 'PrimordialWave')) and (buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] or Maelstrom <60 - 5 * (talents[classtable.EyeoftheStorm] and talents[classtable.EyeoftheStorm] or 1)) and cooldown[classtable.PrimordialWave].ready then
         MaxDps:GlowCooldown(classtable.PrimordialWave, cooldown[classtable.PrimordialWave].ready)
     end
     if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
