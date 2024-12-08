@@ -333,7 +333,7 @@ function Shaman:Elemental()
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
     classtable.Icefury = 210714
-    classtable.FlameShock = MaxDps:FindSpell(188389) and 188389 or MaxDps:FindSpell(470411) and 470411
+    classtable.FlameShock = MaxDps:FindSpell(188389) and 188389 or MaxDps:FindSpell(470411) and 470411 or 188389
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
