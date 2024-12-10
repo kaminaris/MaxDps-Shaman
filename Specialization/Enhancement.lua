@@ -160,7 +160,7 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (buff[classtable.MaelstromWeaponBuff].count >= 8 and buff[classtable.FeralSpiritBuff].remains >= 4 and ( not buff[classtable.AscendanceBuff].up or cooldown[classtable.ElementalBlast].charges >= 1.8 )) and cooldown[classtable.ElementalBlast].ready then
         if not setSpell then setSpell = classtable.ElementalBlast end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count >= 8 + 2 * talents[classtable.LegacyoftheFrostWitch]) and cooldown[classtable.LightningBolt].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count >= 8 + 2 * (talents[classtable.LegacyoftheFrostWitch] and talents[classtable.LegacyoftheFrostWitch] or 0 )) and cooldown[classtable.LightningBolt].ready then
         if not setSpell then setSpell = classtable.LightningBolt end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and not talents[classtable.LegacyoftheFrostWitch] and ( talents[classtable.DeeplyRootedElements] or not talents[classtable.OverflowingMaelstrom] or not talents[classtable.WitchDoctorsAncestry] )) and cooldown[classtable.LightningBolt].ready then
@@ -838,7 +838,7 @@ function Shaman:Enhancement()
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
     classtable.Windstrike = 115356
-    classtable.FlameShock = MaxDps:FindSpell(188389) and 188389 or MaxDps:FindSpell(470411) and 470411 or 188389
+    classtable.FlameShock = MaxDps:FindSpell(470057) and 470057 or MaxDps:FindSpell(188389) and 188389 or MaxDps:FindSpell(470411) and 470411 or 188389
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
@@ -853,7 +853,7 @@ function Shaman:Enhancement()
     classtable.TempestBuff = 454009
     classtable.AwakeningStormsBuff = 455129
     classtable.AscendanceBuff = 114051
-    classtable.VoltaicBlazeBuff = 470053
+    classtable.VoltaicBlazeBuff = 470058
     classtable.ArcDischargeBuff = 455096
     classtable.HotHandBuff = 215785
     classtable.AshenCatalystBuff = 0
