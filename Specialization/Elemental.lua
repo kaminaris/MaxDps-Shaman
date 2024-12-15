@@ -115,7 +115,7 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.Stormkeeper, 'Stormkeeper')) and cooldown[classtable.Stormkeeper].ready then
         MaxDps:GlowCooldown(classtable.Stormkeeper, cooldown[classtable.Stormkeeper].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and ( debuff[classtable.FlameShockDeBuff].count  <( targets >6 ) - 2 or talents[classtable.FireElemental] )) and cooldown[classtable.TotemicRecall].ready then
+    if (MaxDps:CheckSpellUsable(classtable.TotemicRecall, 'TotemicRecall')) and (cooldown[classtable.LiquidMagmaTotem].remains >15 and ( debuff[classtable.FlameShockDeBuff].count  < 6 - 2 or talents[classtable.FireElemental] )) and cooldown[classtable.TotemicRecall].ready then
         if not setSpell then setSpell = classtable.TotemicRecall end
     end
     if (MaxDps:CheckSpellUsable(classtable.LiquidMagmaTotem, 'LiquidMagmaTotem')) and ((GetTotemDuration('liquid_magma_totem') == 0)) and cooldown[classtable.LiquidMagmaTotem].ready then
@@ -127,7 +127,7 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness')) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count  <( targets >6 ) and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and buff[classtable.SurgeofPowerBuff].up and debuff[classtable.FlameShockDeBuff].remains <ttd - 16 and debuff[classtable.FlameShockDeBuff].count < 6 and not talents[classtable.LiquidMagmaTotem]) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].refreshable and talents[classtable.FireElemental] and ( buff[classtable.SurgeofPowerBuff].up or not talents[classtable.SurgeofPower] ) and debuff[classtable.FlameShockDeBuff].remains <ttd - 5 and ( debuff[classtable.FlameShockDeBuff].count  <6 or debuff[classtable.FlameShockDeBuff].remains >0 )) and cooldown[classtable.FlameShock].ready then
