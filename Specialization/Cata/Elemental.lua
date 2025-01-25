@@ -62,84 +62,112 @@ local MaelstromDeficit
 local Mana
 local ManaMax
 local ManaDeficit
+local ManaPerc
 
 local Elemental = {}
 
 
 
-local function ClearCDs()
-    MaxDps:GlowCooldown(classtable.WindShear, false)
-    MaxDps:GlowCooldown(classtable.Bloodlust, false)
-    MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, false)
+local function GetTotemDuration(name)
+    for index=1,MAX_TOTEMS do
+        local arg1, totemName, startTime, duration, icon = GetTotemInfo(index)
+        local est_dur = math.floor(startTime+duration-GetTime())
+        if (totemName == name and est_dur and est_dur > 0) then return est_dur else return 0 end
+    end
 end
 
-function Elemental:callaction()
-    --if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and cooldown[classtable.FlametongueWeapon].ready then
-    --    if not setSpell then setSpell = classtable.FlametongueWeapon end
-    --end
-    --if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and cooldown[classtable.LightningShield].ready then
-    --    if not setSpell then setSpell = classtable.LightningShield end
-    --end
-    --if (MaxDps:CheckSpellUsable(classtable.ManaSpringTotem, 'ManaSpringTotem')) and cooldown[classtable.ManaSpringTotem].ready then
-    --    if not setSpell then setSpell = classtable.ManaSpringTotem end
-    --end
-    --if (MaxDps:CheckSpellUsable(classtable.WrathofAirTotem, 'WrathofAirTotem')) and cooldown[classtable.WrathofAirTotem].ready then
-    --    if not setSpell then setSpell = classtable.WrathofAirTotem end
-    --end
-    --if (MaxDps:CheckSpellUsable(classtable.VolcanicPotion, 'VolcanicPotion')) and (not UnitAffectingCombat('player') or MaxDps:Bloodlust() or ttd <= 40) and cooldown[classtable.VolcanicPotion].ready then
-    --    if not setSpell then setSpell = classtable.VolcanicPotion end
-    --end
-    if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
-        MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
+
+function Elemental:precombat()
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (not false) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+        if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Bloodlust, 'Bloodlust')) and cooldown[classtable.Bloodlust].ready then
-        MaxDps:GlowCooldown(classtable.Bloodlust, cooldown[classtable.Bloodlust].ready)
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (not false) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+        if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Bloodlust, 'Bloodlust')) and (ttd <= 60) and cooldown[classtable.Bloodlust].ready then
-        MaxDps:GlowCooldown(classtable.Bloodlust, cooldown[classtable.Bloodlust].ready)
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
+        if not setSpell then setSpell = classtable.LightningShield end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheElements].ready and not UnitAffectingCombat('player') then
+        if not setSpell then setSpell = classtable.CalloftheElements end
+    end
+end
+function Elemental:single()
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (buff[classtable.PotionBuff].up or ttd <= 120) and cooldown[classtable.FireElementalTotem].ready then
+        if not setSpell then setSpell = classtable.FireElementalTotem end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheElements].ready then
+        if not setSpell then setSpell = classtable.CalloftheElements end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not buff[classtable.FireTotemBuff].up) and cooldown[classtable.SearingTotem].ready then
+        if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.ElementalMastery, 'ElementalMastery')) and cooldown[classtable.ElementalMastery].ready then
         if not setSpell then setSpell = classtable.ElementalMastery end
     end
-    if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and cooldown[classtable.UnleashElements].ready then
-        if not setSpell then setSpell = classtable.UnleashElements end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up or debuff[classtable.FlameShockDeBuff].refreshable or ( ( MaxDps:Bloodlust() or buff[classtable.ElementalMasteryBuff].up ) and debuff[classtable.FlameShockDeBuff].refreshable )) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].remains <= 2) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 )) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >2) and cooldown[classtable.LavaBurst].ready then
         if not setSpell then setSpell = classtable.LavaBurst end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].up == 9) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >= 7) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >6) and cooldown[classtable.EarthShock].ready then
-        if not setSpell then setSpell = classtable.EarthShock end
+    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and (ManaPerc <60) and cooldown[classtable.Thunderstorm].ready then
+        if not setSpell then setSpell = classtable.Thunderstorm end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not debuff[classtable.FireElementalTotemDeBuff].up and buff[classtable.VolcanicPotionBuff].up) and cooldown[classtable.FireElementalTotem].ready then
-        if not setSpell then setSpell = classtable.FireElementalTotem end
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready then
+        if not setSpell then setSpell = classtable.LightningShield end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not debuff[classtable.FireElementalTotemDeBuff].up and not buff[classtable.VolcanicPotionBuff].up) and cooldown[classtable.FireElementalTotem].ready then
-        if not setSpell then setSpell = classtable.FireElementalTotem end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not debuff[classtable.EarthElementalTotemDeBuff].up) and cooldown[classtable.EarthElementalTotem].ready then
-        if not setSpell then setSpell = classtable.EarthElementalTotem end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and cooldown[classtable.SearingTotem].ready then
-        if not setSpell then setSpell = classtable.SearingTotem end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
-        MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, cooldown[classtable.SpiritwalkersGrace].ready)
-    end
-    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >2) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >1 and not (GetUnitSpeed('player') >0)) and cooldown[classtable.ChainLightning].ready then
         if not setSpell then setSpell = classtable.ChainLightning end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and ((GetUnitSpeed('player') >0) and not MaxDps:HasGlyphEnabled(classtable.UnleashedLightningGlyph)) and cooldown[classtable.UnleashElements].ready then
+        if not setSpell then setSpell = classtable.UnleashElements end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
         if not setSpell then setSpell = classtable.LightningBolt end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and cooldown[classtable.Thunderstorm].ready then
+end
+function Elemental:aoe()
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheAncestors, 'CalloftheAncestors')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheAncestors].ready then
+        if not setSpell then setSpell = classtable.CalloftheAncestors end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and cooldown[classtable.FireElementalTotem].ready then
+        if not setSpell then setSpell = classtable.FireElementalTotem end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.ElementalMastery, 'ElementalMastery')) and cooldown[classtable.ElementalMastery].ready then
+        if not setSpell then setSpell = classtable.ElementalMastery end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >= 9 and targets <= 4) and cooldown[classtable.EarthShock].ready then
+        if not setSpell then setSpell = classtable.EarthShock end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (not buff[classtable.FireTotemBuff].up and (LibRangeCheck and LibRangeCheck:GetRange('target', false, true) <=6 or false)) and cooldown[classtable.MagmaTotem].ready then
+        if not setSpell then setSpell = classtable.MagmaTotem end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and (ManaPerc <60) and cooldown[classtable.Thunderstorm].ready then
         if not setSpell then setSpell = classtable.Thunderstorm end
     end
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready then
+        if not setSpell then setSpell = classtable.LightningShield end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and ((GetUnitSpeed('player') >0) and MaxDps:HasGlyphEnabled(classtable.UnleashedLightningGlyph)) and cooldown[classtable.LightningBolt].ready then
+        if not setSpell then setSpell = classtable.LightningBolt end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and cooldown[classtable.ChainLightning].ready then
+        if not setSpell then setSpell = classtable.ChainLightning end
+    end
+end
+
+
+local function ClearCDs()
+end
+
+function Elemental:callaction()
+    if (targets >2) then
+        Elemental:aoe()
+    end
+    Elemental:single()
 end
 function Shaman:Elemental()
     fd = MaxDps.FrameData
@@ -167,20 +195,43 @@ function Shaman:Elemental()
     Maelstrom = UnitPower('player', MaelstromPT)
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
+    ManaPerc = (Mana / ManaMax) * 100
     classtable.Icefury = 210714
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
     --end
-    classtable.bloodlust = 0
-    classtable.FlameShockDeBuff = 188389
-    classtable.ElementalMasteryBuff = 0
-    classtable.LightningShieldBuff = 192106
-    classtable.FireElementalTotemDeBuff = 0
-    classtable.VolcanicPotionBuff = 0
-    classtable.EarthElementalTotemDeBuff = 0
+    classtable.FlameShockDeBuff = 49233
+    classtable.FlametongueWeapon = 8024
+    classtable.LightningShield = 324
+    classtable.CalloftheElements = 66842
+    classtable.FireElementalTotem = 2894
+    classtable.SearingTotem = 3599
+    classtable.ElementalMastery = 16166
+    classtable.FlameShock = 8050
+    classtable.LavaBurst = 51505
+    classtable.EarthShock = 8042
+    classtable.Thunderstorm = 51490
+    classtable.ChainLightning = 421
+    classtable.UnleashElements = 73680
+    classtable.LightningBolt = 403
+    classtable.CalloftheAncestors = 66843
+    classtable.MagmaTotem = 8190
+    classtable.UnleashedLightningGlyph = 101052
+    classtable.UnleashedLightningGlyph = 101052
+
+    local function debugg()
+    end
+
+
+    --if MaxDps.db.global.debugMode then
+    --   debugg()
+    --end
+
     setSpell = nil
     ClearCDs()
+
+    Elemental:precombat()
 
     Elemental:callaction()
     if setSpell then return setSpell end
