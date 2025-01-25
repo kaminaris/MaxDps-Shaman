@@ -202,7 +202,6 @@ function Shaman:Elemental()
     --    self:ClearGlowIndependent(spellId, spellId)
     --end
     classtable.ShieldBuff = 49284
-    classtable.FlameShockBuff = 49233
     classtable.LightningShieldBuff = 49281
     classtable.FlameShockDeBuff = 49233
     classtable.FlametongueWeapon = 8024
