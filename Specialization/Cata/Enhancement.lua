@@ -179,6 +179,9 @@ function Shaman:Enhancement()
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
     --end
+    classtable.ShieldBuff = 49284
+    classtable.FlameShockBuff = 49233
+    classtable.MaelstromWeaponBuff = 53817
     classtable.FlameShockDeBuff = 49233
     classtable.WindfuryWeapon = 8232
     classtable.FlametongueWeapon = 8024
