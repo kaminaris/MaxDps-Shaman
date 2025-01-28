@@ -77,17 +77,17 @@ local function GetTotemDuration(name)
 end
 
 
+local function GetTotemTypeActive(i)
+   local arg1, totemName, startTime, duration, icon = GetTotemInfo(i)
+   return duration > 0
+end
+
+
 function Elemental:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (not false) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.FlametongueWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (not false) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.FlametongueWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.LightningShield end
     end
-    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheElements].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and ((GetTotemTypeActive('1') == false) and (GetTotemTypeActive('2') == false) and (GetTotemTypeActive('3') == false) and (GetTotemTypeActive('4') == false)) and cooldown[classtable.CalloftheElements].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.CalloftheElements end
     end
 end
@@ -95,10 +95,10 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (buff[classtable.PotionBuff].up or ttd <= 120) and cooldown[classtable.FireElementalTotem].ready then
         if not setSpell then setSpell = classtable.FireElementalTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheElements].ready then
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and ((GetTotemTypeActive('1') == false) and (GetTotemTypeActive('2') == false) and (GetTotemTypeActive('3') == false) and (GetTotemTypeActive('4') == false)) and cooldown[classtable.CalloftheElements].ready then
         if not setSpell then setSpell = classtable.CalloftheElements end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not buff[classtable.FireTotemBuff].up) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and ((GetTotemTypeActive('1') == false)) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.ElementalMastery, 'ElementalMastery')) and cooldown[classtable.ElementalMastery].ready then
@@ -116,7 +116,7 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and (ManaPerc <60) and cooldown[classtable.Thunderstorm].ready then
         if not setSpell then setSpell = classtable.Thunderstorm end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready then
         if not setSpell then setSpell = classtable.LightningShield end
     end
     if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >1 and not (GetUnitSpeed('player') >0)) and cooldown[classtable.ChainLightning].ready then
@@ -130,7 +130,7 @@ function Elemental:single()
     end
 end
 function Elemental:aoe()
-    if (MaxDps:CheckSpellUsable(classtable.CalloftheAncestors, 'CalloftheAncestors')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheAncestors].ready then
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheAncestors, 'CalloftheAncestors')) and ((GetTotemTypeActive('1') == false) and (GetTotemTypeActive('2') == false) and (GetTotemTypeActive('3') == false) and (GetTotemTypeActive('4') == false)) and cooldown[classtable.CalloftheAncestors].ready then
         if not setSpell then setSpell = classtable.CalloftheAncestors end
     end
     if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and cooldown[classtable.FireElementalTotem].ready then
@@ -142,13 +142,13 @@ function Elemental:aoe()
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >= 9 and targets <= 4) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (not buff[classtable.FireTotemBuff].up and (LibRangeCheck and LibRangeCheck:GetRange('target', false, true) <=6 or false)) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and ((GetTotemTypeActive('1') == false)) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and (ManaPerc <60) and cooldown[classtable.Thunderstorm].ready then
         if not setSpell then setSpell = classtable.Thunderstorm end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready then
         if not setSpell then setSpell = classtable.LightningShield end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and ((GetUnitSpeed('player') >0) and MaxDps:HasGlyphEnabled(classtable.UnleashedLightningGlyph)) and cooldown[classtable.LightningBolt].ready then
@@ -201,10 +201,8 @@ function Shaman:Elemental()
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
     --end
-    classtable.ShieldBuff = 49284
     classtable.LightningShieldBuff = 49281
     classtable.FlameShockDeBuff = 49233
-    classtable.FlametongueWeapon = 8024
     classtable.LightningShield = 324
     classtable.CalloftheElements = 66842
     classtable.FireElementalTotem = 2894

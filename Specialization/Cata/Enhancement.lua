@@ -77,17 +77,17 @@ local function GetTotemDuration(name)
 end
 
 
+local function GetTotemTypeActive(i)
+   local arg1, totemName, startTime, duration, icon = GetTotemInfo(i)
+   return duration > 0
+end
+
+
 function Enhancement:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and (not false) and cooldown[classtable.WindfuryWeapon].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.WindfuryWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (not false) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.FlametongueWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.ShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.LightningShield end
     end
-    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheElements].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and ((GetTotemTypeActive('1') == false) and (GetTotemTypeActive('2') == false) and (GetTotemTypeActive('3') == false) and (GetTotemTypeActive('4') == false)) and cooldown[classtable.CalloftheElements].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.CalloftheElements end
     end
 end
@@ -101,25 +101,19 @@ function Enhancement:callaction()
     if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
         MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
     end
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and (not false) and cooldown[classtable.WindfuryWeapon].ready then
-        if not setSpell then setSpell = classtable.WindfuryWeapon end
-    end
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (not false) and cooldown[classtable.FlametongueWeapon].ready then
-        if not setSpell then setSpell = classtable.FlametongueWeapon end
-    end
     if (MaxDps:CheckSpellUsable(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
         if not setSpell then setSpell = classtable.FeralSpirit end
     end
-    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and (not buff[classtable.EarthTotemBuff].up and not buff[classtable.FireTotemBuff].up and not buff[classtable.WaterTotemBuff].up and not buff[classtable.AirTotemBuff].up) and cooldown[classtable.CalloftheElements].ready then
+    if (MaxDps:CheckSpellUsable(classtable.CalloftheElements, 'CalloftheElements')) and ((GetTotemTypeActive('1') == false) and (GetTotemTypeActive('2') == false) and (GetTotemTypeActive('3') == false) and (GetTotemTypeActive('4') == false)) and cooldown[classtable.CalloftheElements].ready then
         if not setSpell then setSpell = classtable.CalloftheElements end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (buff[classtable.ShieldBuff].remains <= 3) and cooldown[classtable.LightningShield].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (buff[classtable.LightningShieldBuff].remains <= 3) and cooldown[classtable.LightningShield].ready then
         if not setSpell then setSpell = classtable.LightningShield end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (debuff[classtable.FlameShockDeBuff].remains <4 and ttd >= 9) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (buff[classtable.FireTotemBuff].remains <5) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and ((GetTotemTypeActive('1') == false)) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (targets >1 and MaxDps:DebuffCounter(classtable.FlameShockDeBuff) >0) and cooldown[classtable.FireNova].ready then
@@ -179,11 +173,9 @@ function Shaman:Enhancement()
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
     --end
-    classtable.ShieldBuff = 49284
+    classtable.LightningShieldBuff = 324
     classtable.MaelstromWeaponBuff = 53817
     classtable.FlameShockDeBuff = 49233
-    classtable.WindfuryWeapon = 8232
-    classtable.FlametongueWeapon = 8024
     classtable.LightningShield = 324
     classtable.CalloftheElements = 66842
     classtable.WindShear = 57994
