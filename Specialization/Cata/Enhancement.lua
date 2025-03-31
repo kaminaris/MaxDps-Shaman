@@ -175,7 +175,7 @@ function Shaman:Enhancement()
     --end
     classtable.LightningShieldBuff = 324
     classtable.MaelstromWeaponBuff = 53817
-    classtable.FlameShockDeBuff = 49233
+    classtable.FlameShockDeBuff = 8050
     classtable.LightningShield = 324
     classtable.CalloftheElements = 66842
     classtable.WindShear = 57994
