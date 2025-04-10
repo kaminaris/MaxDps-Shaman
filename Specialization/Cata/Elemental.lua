@@ -201,8 +201,8 @@ function Shaman:Elemental()
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
     --end
-    classtable.LightningShieldBuff = 49281
-    classtable.FlameShockDeBuff = 49233
+    classtable.LightningShieldBuff = 324
+    classtable.FlameShockDeBuff = 8050
     classtable.LightningShield = 324
     classtable.CalloftheElements = 66842
     classtable.FireElementalTotem = 2894
