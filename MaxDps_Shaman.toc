@@ -29,3 +29,8 @@ Specialization\Cata\Enhancement.lua
 Specialization\Cata\Elemental.lua
 Specialization\Cata\Enhancement.lua
 #@end-version-classic@
+
+#@version-mists@
+Specialization\Mop\Elemental.lua
+Specialization\Mop\Enhancement.lua
+#@end-version-mists@
