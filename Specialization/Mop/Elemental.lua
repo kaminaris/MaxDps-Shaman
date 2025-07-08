@@ -66,6 +66,7 @@ local Mana
 local ManaMax
 local ManaDeficit
 local ManaPerc
+local hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID
 
 local Elemental = {}
 
@@ -98,22 +99,24 @@ end
 
 
 function Elemental:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.LightningShield end
     end
-    if (MaxDps:CheckSpellUsable(classtable.VolcanicPotion, 'VolcanicPotion')) and cooldown[classtable.VolcanicPotion].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.VolcanicPotion end
-    end
+    --if (MaxDps:CheckSpellUsable(classtable.VolcanicPotion, 'VolcanicPotion')) and cooldown[classtable.VolcanicPotion].ready and not UnitAffectingCombat('player') then
+    --    if not setSpell then setSpell = classtable.VolcanicPotion end
+    --end
 end
 function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.ElementalMastery, 'ElementalMastery') and talents[classtable.ElementalMastery]) and ((talents[classtable.ElementalMastery] and true or false) and timeInCombat >15 and ( ( not MaxDps:Bloodlust(1) and timeInCombat <120 ) or ( not buff[classtable.BerserkingBuff].up and not MaxDps:Bloodlust(1) and buff[classtable.AscendanceBuff].up ) or ( timeInCombat >= 200 and ( cooldown[classtable.Ascendance].remains >30 or UnitLevel('player') <87 ) ) )) and cooldown[classtable.ElementalMastery].ready then
-        if not setSpell then setSpell = classtable.ElementalMastery end
+        --if not setSpell then setSpell = classtable.ElementalMastery end
+        MaxDps:GlowCooldown(classtable.ElementalMastery, true)
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not active) and cooldown[classtable.FireElementalTotem].ready then
-        if not setSpell then setSpell = classtable.FireElementalTotem end
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up) and cooldown[classtable.FireElementalTotem].ready then
+        --if not setSpell then setSpell = classtable.FireElementalTotem end
+        MaxDps:GlowCooldown(classtable.FireElementalTotem, true)
     end
     if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness') and talents[classtable.AncestralSwiftness]) and ((talents[classtable.AncestralSwiftness] and true or false) and not buff[classtable.AscendanceBuff].up) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
@@ -133,13 +136,14 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].up == buff[classtable.LightningShieldBuff].maxStacks) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >3 and debuff[classtable.FlameShockDeBuff].remains >cooldown[classtable.EarthShock].remains and debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.EarthShock].remains + action.flame_shock.tick_time) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >3 and debuff[classtable.FlameShockDeBuff].remains >cooldown[classtable.EarthShock].remains and debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.EarthShock].remains + 1) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not active) and cooldown[classtable.EarthElementalTotem].ready then
-        if not setSpell then setSpell = classtable.EarthElementalTotem end
+    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoByName("Earth Elemental Totem").up) and cooldown[classtable.EarthElementalTotem].ready then
+        --if not setSpell then setSpell = classtable.EarthElementalTotem end
+        MaxDps:GlowCooldown(classtable.EarthElementalTotem, false)
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not (GetTotemInfoByName('Fire').up)) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
@@ -153,10 +157,10 @@ function Elemental:single()
     end
 end
 function Elemental:ae()
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >2 and not (GetTotemInfoByName('Fire').up)) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >2 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 2 and not (GetTotemInfoByName('Fire').up)) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 2 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up and targets <3) and cooldown[classtable.FlameShock].ready then
@@ -168,10 +172,10 @@ function Elemental:ae()
     if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (targets >4) and cooldown[classtable.Earthquake].ready then
         if not setSpell then setSpell = classtable.Earthquake end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and (mana.pct_nonproc <80) and cooldown[classtable.Thunderstorm].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and (ManaPerc <80) and cooldown[classtable.Thunderstorm].ready then
         if not setSpell then setSpell = classtable.Thunderstorm end
     end
-    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (mana.pct_nonproc >10) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (ManaPerc >10) and cooldown[classtable.ChainLightning].ready then
         if not setSpell then setSpell = classtable.ChainLightning end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and cooldown[classtable.LightningBolt].ready then
@@ -185,16 +189,19 @@ local function ClearCDs()
     MaxDps:GlowCooldown(classtable.Bloodlust, false)
     MaxDps:GlowCooldown(classtable.AncestralSwiftness, false)
     MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, false)
+    MaxDps:GlowCooldown(classtable.ElementalMastery, false)
+    MaxDps:GlowCooldown(classtable.FireElementalTotem, false)
+    MaxDps:GlowCooldown(classtable.EarthElementalTotem, false)
 end
 
 function Elemental:callaction()
     if (MaxDps:CheckSpellUsable(classtable.Bloodlust, 'Bloodlust')) and (targethealthPerc <25 or timeInCombat >5) and cooldown[classtable.Bloodlust].ready then
         MaxDps:GlowCooldown(classtable.Bloodlust, cooldown[classtable.Bloodlust].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.VolcanicPotion, 'VolcanicPotion')) and (timeInCombat >60 and ( ( UnitExists('pet') and UnitName('pet')  == 'PrimalFireElemental' ) or ( UnitExists('pet') and UnitName('pet')  == 'GreaterFireElemental' ) or ttd <= 60 )) and cooldown[classtable.VolcanicPotion].ready then
-        if not setSpell then setSpell = classtable.VolcanicPotion end
-    end
-    if (targets == 1) then
+    --if (MaxDps:CheckSpellUsable(classtable.VolcanicPotion, 'VolcanicPotion')) and (timeInCombat >60 and ( ( UnitExists('pet') and UnitName('pet')  == 'PrimalFireElemental' ) or ( UnitExists('pet') and UnitName('pet')  == 'GreaterFireElemental' ) or ttd <= 60 )) and cooldown[classtable.VolcanicPotion].ready then
+    --    if not setSpell then setSpell = classtable.VolcanicPotion end
+    --end
+    if (targets <= 1) then
         Elemental:single()
     end
     if (targets >1) then
@@ -228,7 +235,7 @@ function Shaman:Elemental()
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
     ManaPerc = (Mana / ManaMax) * 100
-    classtable.Icefury = 210714
+    hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID = GetWeaponEnchantInfo()
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
@@ -241,6 +248,17 @@ function Shaman:Elemental()
         talents[classtable.ElementalBlast] = 1
     end
 
+    classtable.FlametongueWeapon = 8024
+    classtable.FireElementalTotem = 2894
+    classtable.EarthElementalTotem = 2062
+    classtable.SearingTotem = 3599
+
+    --classtable.FlametongueWeaponBuff
+    classtable.LightningShieldBuff = 324
+    classtable.BerserkingBuff = 20554
+    classtable.AscendanceBuff = 114050
+    classtable.ElementalMasteryBuff = 16166
+    classtable.FlameShockDeBuff = 8050
 
     --if MaxDps.db.global.debugMode then
     --   debugg()
