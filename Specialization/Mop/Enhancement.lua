@@ -226,7 +226,7 @@ function Enhancement:callaction()
     --if (MaxDps:CheckSpellUsable(classtable.TolvirPotion, 'TolvirPotion')) and (timeInCombat >60 and ( ( UnitExists('pet') and UnitName('pet')  == 'PrimalFireElemental' ) or ( UnitExists('pet') and UnitName('pet')  == 'GreaterFireElemental' ) or ttd <= 60 )) and cooldown[classtable.TolvirPotion].ready then
     --    if not setSpell then setSpell = classtable.TolvirPotion end
     --end
-    if (targets == 1) then
+    if (targets <= 1) then
         Enhancement:single()
     end
     if (targets >1) then
