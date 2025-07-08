@@ -66,6 +66,7 @@ local Mana
 local ManaMax
 local ManaDeficit
 local ManaPerc
+local hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID
 
 local Enhancement = {}
 
@@ -98,27 +99,27 @@ end
 
 
 function Enhancement:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and cooldown[classtable.WindfuryWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and (mainHandEnchantID ~= 283 and offHandEnchantID ~= 283) and cooldown[classtable.WindfuryWeapon].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.WindfuryWeapon end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5 and offHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.LightningShield end
     end
-    if (MaxDps:CheckSpellUsable(classtable.TolvirPotion, 'TolvirPotion')) and cooldown[classtable.TolvirPotion].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.TolvirPotion end
-    end
+    --if (MaxDps:CheckSpellUsable(classtable.TolvirPotion, 'TolvirPotion')) and cooldown[classtable.TolvirPotion].ready and not UnitAffectingCombat('player') then
+    --    if not setSpell then setSpell = classtable.TolvirPotion end
+    --end
 end
 function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.ElementalMastery, 'ElementalMastery') and talents[classtable.ElementalMastery]) and ((talents[classtable.ElementalMastery] and true or false)) and cooldown[classtable.ElementalMastery].ready then
         if not setSpell then setSpell = classtable.ElementalMastery end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not active and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= totem.fire_elemental_totem.duration + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
         if not setSpell then setSpell = classtable.FireElementalTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not (GetTotemInfoByName('Fire').up)) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and ((talents[classtable.UnleashedFury] and true or false)) and cooldown[classtable.UnleashElements].ready then
@@ -157,7 +158,7 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
         MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not active) and cooldown[classtable.EarthElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoByName("Earth Elemental Totem").up) and cooldown[classtable.EarthElementalTotem].ready then
         if not setSpell then setSpell = classtable.EarthElementalTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
@@ -168,16 +169,16 @@ function Enhancement:single()
     end
 end
 function Enhancement:ae()
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not active and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= totem.fire_elemental_totem.duration + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
         if not setSpell then setSpell = classtable.FireElementalTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >5 and not (GetTotemInfoByName('Fire').up)) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >5 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 5 and not (GetTotemInfoByName('Fire').up)) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 5 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (( targets <= 5 and active_flame_shock == targets ) or active_flame_shock >= 5) and cooldown[classtable.FireNova].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (( targets <= 5 and MaxDps:DebuffCounter(classtable.FlameShock) == targets ) or MaxDps:DebuffCounter(classtable.FlameShock) >= 5) and cooldown[classtable.FireNova].ready then
         if not setSpell then setSpell = classtable.FireNova end
     end
     if (MaxDps:CheckSpellUsable(classtable.LavaLash, 'LavaLash')) and (debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.LavaLash].ready then
@@ -222,9 +223,9 @@ function Enhancement:callaction()
     if (MaxDps:CheckSpellUsable(classtable.Bloodlust, 'Bloodlust')) and (targethealthPerc <25 or timeInCombat >5) and cooldown[classtable.Bloodlust].ready then
         MaxDps:GlowCooldown(classtable.Bloodlust, cooldown[classtable.Bloodlust].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.TolvirPotion, 'TolvirPotion')) and (timeInCombat >60 and ( ( UnitExists('pet') and UnitName('pet')  == 'PrimalFireElemental' ) or ( UnitExists('pet') and UnitName('pet')  == 'GreaterFireElemental' ) or ttd <= 60 )) and cooldown[classtable.TolvirPotion].ready then
-        if not setSpell then setSpell = classtable.TolvirPotion end
-    end
+    --if (MaxDps:CheckSpellUsable(classtable.TolvirPotion, 'TolvirPotion')) and (timeInCombat >60 and ( ( UnitExists('pet') and UnitName('pet')  == 'PrimalFireElemental' ) or ( UnitExists('pet') and UnitName('pet')  == 'GreaterFireElemental' ) or ttd <= 60 )) and cooldown[classtable.TolvirPotion].ready then
+    --    if not setSpell then setSpell = classtable.TolvirPotion end
+    --end
     if (targets == 1) then
         Enhancement:single()
     end
@@ -259,7 +260,7 @@ function Shaman:Enhancement()
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
     ManaPerc = (Mana / ManaMax) * 100
-    classtable.Windstrike = 115356
+    hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID = GetWeaponEnchantInfo()
     --for spellId in pairs(MaxDps.Flags) do
     --    self.Flags[spellId] = false
     --    self:ClearGlowIndependent(spellId, spellId)
@@ -271,6 +272,20 @@ function Shaman:Enhancement()
         talents[classtable.AncestralSwiftness] = 1
     end
 
+    classtable.WindfuryWeapon = 8232
+    classtable.FlametongueWeapon = 8024
+    classtable.FireElementalTotem = 2894
+    classtable.SearingTotem = 3599
+    classtable.EarthElementalTotem = 2062
+
+    classtable.LightningShieldBuff = 324
+    classtable.ElementalMasteryBuff = 16166
+    classtable.MaelstromWeaponBuff = 53817
+    classtable.UnleashFlameBuff = 73683
+    --classtable.AncestralSwiftnessBuff
+    classtable.AscendanceBuff = 114051
+    classtable.FlameShockDeBuff = 8050
+    classtable.UnleashedFuryFtDeBuff = 118522
 
     --if MaxDps.db.global.debugMode then
     --   debugg()
