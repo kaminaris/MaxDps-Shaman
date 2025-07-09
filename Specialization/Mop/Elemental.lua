@@ -133,7 +133,7 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast') and talents[classtable.ElementalBlast]) and ((talents[classtable.ElementalBlast] and true or false) and not buff[classtable.AscendanceBuff].up) and cooldown[classtable.ElementalBlast].ready then
         if not setSpell then setSpell = classtable.ElementalBlast end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].up == buff[classtable.LightningShieldBuff].maxStacks) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >= 6) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >3 and debuff[classtable.FlameShockDeBuff].remains >cooldown[classtable.EarthShock].remains and debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.EarthShock].remains + 1) and cooldown[classtable.EarthShock].ready then
