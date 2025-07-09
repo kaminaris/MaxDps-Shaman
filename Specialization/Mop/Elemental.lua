@@ -250,6 +250,7 @@ function Shaman:Elemental()
 
     classtable.FlametongueWeapon = 8024
     classtable.FireElementalTotem = 2894
+    classtable.MagmaTotem = 8190
     classtable.EarthElementalTotem = 2062
     classtable.SearingTotem = 3599
 
