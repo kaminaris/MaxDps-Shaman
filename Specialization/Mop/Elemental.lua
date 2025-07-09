@@ -157,7 +157,7 @@ function Elemental:single()
     end
 end
 function Elemental:ae()
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >2 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >2 and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 2 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
