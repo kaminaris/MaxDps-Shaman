@@ -275,6 +275,7 @@ function Shaman:Enhancement()
     classtable.WindfuryWeapon = 8232
     classtable.FlametongueWeapon = 8024
     classtable.FireElementalTotem = 2894
+    classtable.MagmaTotem = 8190
     classtable.SearingTotem = 3599
     classtable.EarthElementalTotem = 2062
 
