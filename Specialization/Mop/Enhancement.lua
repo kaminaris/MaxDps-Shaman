@@ -99,10 +99,10 @@ end
 
 
 function Enhancement:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and (mainHandEnchantID ~= 283 and offHandEnchantID ~= 283) and cooldown[classtable.WindfuryWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.WindfuryWeapon, 'WindfuryWeapon')) and (mainHandEnchantID ~= 283 and offHandEnchantID ~= 283) and cooldown[classtable.WindfuryWeapon].ready then
         if not setSpell then setSpell = classtable.WindfuryWeapon end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5 and offHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5 and offHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready then
         if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
