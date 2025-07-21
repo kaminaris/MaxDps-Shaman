@@ -99,7 +99,7 @@ end
 
 
 function Elemental:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready then
         if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
     if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
