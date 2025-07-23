@@ -103,8 +103,13 @@ function Elemental:precombat()
     if (MaxDps:CheckSpellUsable(classtable.FlametongueWeapon, 'FlametongueWeapon')) and (mainHandEnchantID ~= 5) and cooldown[classtable.FlametongueWeapon].ready then
         if not setSpell then setSpell = classtable.FlametongueWeapon end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
-        if not setSpell then setSpell = classtable.LightningShield end
+    if (MaxDps:CheckSpellUsable(classtable.LightningShield, 'LightningShield')) and (ManaPerc < 15 and not buff[classtable.LightningShieldBuff].up) and cooldown[classtable.LightningShield].ready and not UnitAffectingCombat('player') then
+        --if not setSpell then setSpell = classtable.LightningShield end
+        MaxDps:GlowCooldown(classtable.LightningShield, true)
+    end
+    if (MaxDps:CheckSpellUsable(classtable.WaterShield, 'WaterShield')) and (ManaPerc < 15 and not buff[classtable.WaterShieldBuff].up) and cooldown[classtable.WaterShield].ready and not UnitAffectingCombat('player') then
+        --if not setSpell then setSpell = classtable.WaterShield end
+        MaxDps:GlowCooldown(classtable.WaterShield, true)
     end
     --if (MaxDps:CheckSpellUsable(classtable.VolcanicPotion, 'VolcanicPotion')) and cooldown[classtable.VolcanicPotion].ready and not UnitAffectingCombat('player') then
     --    if not setSpell then setSpell = classtable.VolcanicPotion end
@@ -193,6 +198,8 @@ local function ClearCDs()
     MaxDps:GlowCooldown(classtable.ElementalMastery, false)
     MaxDps:GlowCooldown(classtable.FireElementalTotem, false)
     MaxDps:GlowCooldown(classtable.EarthElementalTotem, false)
+    MaxDps:GlowCooldown(classtable.LightningShield, false)
+    MaxDps:GlowCooldown(classtable.WaterShield, false)
 end
 
 function Elemental:callaction()
@@ -254,9 +261,11 @@ function Shaman:Elemental()
     classtable.MagmaTotem = 8190
     classtable.EarthElementalTotem = 2062
     classtable.SearingTotem = 3599
+    classtable.WaterShield = 52127
 
     --classtable.FlametongueWeaponBuff
     classtable.LightningShieldBuff = 324
+    classtable.WaterShieldBuff = 52127
     classtable.BerserkingBuff = 20554
     classtable.AscendanceBuff = 114050
     classtable.ElementalMasteryBuff = 16166
