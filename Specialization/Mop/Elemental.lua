@@ -72,16 +72,17 @@ local Elemental = {}
 
 
 
-local function GetTotemInfoByName(name)
+local function GetTotemInfoById(sSpellID)
     local info = {
         duration = 0,
         remains = 0,
         up = false,
     }
     for index=1,MAX_TOTEMS do
-        local arg1, totemName, startTime, duration, icon = GetTotemInfo(index)
+        local arg1, totemName, startTime, duration, icon, modRate, spellID = GetTotemInfo(index)
+        local sName = sSpellID and GetSpellInfo(sSpellID).name or ""
         local remains = math.floor(startTime+duration-GetTime())
-        if (totemName == name ) then
+        if (spellID == sSpellID) or (totemName == sName ) then
             info.duration = duration
             info.up = true
             info.remains = remains
@@ -114,7 +115,7 @@ function Elemental:single()
         --if not setSpell then setSpell = classtable.ElementalMastery end
         MaxDps:GlowCooldown(classtable.ElementalMastery, true)
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up) and cooldown[classtable.FireElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and (not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up) and cooldown[classtable.FireElementalTotem].ready then
         --if not setSpell then setSpell = classtable.FireElementalTotem end
         MaxDps:GlowCooldown(classtable.FireElementalTotem, true)
     end
@@ -139,11 +140,11 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >3 and debuff[classtable.FlameShockDeBuff].remains >cooldown[classtable.EarthShock].remains and debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.EarthShock].remains + 1) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoByName("Earth Elemental Totem").up) and cooldown[classtable.EarthElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoById(classtable.EarthElementalTotem).up) and cooldown[classtable.EarthElementalTotem].ready then
         --if not setSpell then setSpell = classtable.EarthElementalTotem end
         MaxDps:GlowCooldown(classtable.EarthElementalTotem, false)
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
@@ -157,10 +158,10 @@ function Elemental:single()
     end
 end
 function Elemental:ae()
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >2 and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >2 and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 2 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 2 and not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up and targets <3) and cooldown[classtable.FlameShock].ready then
