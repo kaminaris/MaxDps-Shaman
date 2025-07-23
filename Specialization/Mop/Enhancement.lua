@@ -72,16 +72,17 @@ local Enhancement = {}
 
 
 
-local function GetTotemInfoByName(name)
+local function GetTotemInfoById(sSpellID)
     local info = {
         duration = 0,
         remains = 0,
         up = false,
     }
     for index=1,MAX_TOTEMS do
-        local arg1, totemName, startTime, duration, icon = GetTotemInfo(index)
+        local arg1, totemName, startTime, duration, icon, modRate, spellID = GetTotemInfo(index)
+        local sName = sSpellID and GetSpellInfo(sSpellID).name or ""
         local remains = math.floor(startTime+duration-GetTime())
-        if (totemName == name ) then
+        if (spellID == sSpellID) or (totemName == sName ) then
             info.duration = duration
             info.up = true
             info.remains = remains
@@ -116,10 +117,10 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.ElementalMastery, 'ElementalMastery') and talents[classtable.ElementalMastery]) and ((talents[classtable.ElementalMastery] and true or false)) and cooldown[classtable.ElementalMastery].ready then
         if not setSpell then setSpell = classtable.ElementalMastery end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
         if not setSpell then setSpell = classtable.FireElementalTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and ((talents[classtable.UnleashedFury] and true or false)) and cooldown[classtable.UnleashElements].ready then
@@ -158,7 +159,7 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.FeralSpirit, 'FeralSpirit')) and cooldown[classtable.FeralSpirit].ready then
         MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoByName("Earth Elemental Totem").up) and cooldown[classtable.EarthElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoById(classtable.EarthElementalTotem).up) and cooldown[classtable.EarthElementalTotem].ready then
         if not setSpell then setSpell = classtable.EarthElementalTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
@@ -169,13 +170,13 @@ function Enhancement:single()
     end
 end
 function Enhancement:ae()
-    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
         if not setSpell then setSpell = classtable.FireElementalTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >5 and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >5 and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 5 and not GetTotemInfoByName('Searing Totem').up and not GetTotemInfoByName('Magma Totem').up and not GetTotemInfoByName("Fire Elemental Totem").up) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 5 and not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (( targets <= 5 and MaxDps:DebuffCounter(classtable.FlameShock) == targets ) or MaxDps:DebuffCounter(classtable.FlameShock) >= 5) and cooldown[classtable.FireNova].ready then
