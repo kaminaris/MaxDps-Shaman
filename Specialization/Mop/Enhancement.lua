@@ -123,7 +123,8 @@ function Enhancement:single()
         if not setSpell then setSpell = classtable.ElementalMastery end
     end
     if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
-        if not setSpell then setSpell = classtable.FireElementalTotem end
+        --if not setSpell then setSpell = classtable.FireElementalTotem end
+        MaxDps:GlowCooldown(classtable.FireElementalTotem, true)
     end
     if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
@@ -165,7 +166,8 @@ function Enhancement:single()
         MaxDps:GlowCooldown(classtable.FeralSpirit, cooldown[classtable.FeralSpirit].ready)
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoById(classtable.EarthElementalTotem).up) and cooldown[classtable.EarthElementalTotem].ready then
-        if not setSpell then setSpell = classtable.EarthElementalTotem end
+        --if not setSpell then setSpell = classtable.EarthElementalTotem end
+        MaxDps:GlowCooldown(classtable.EarthElementalTotem, true)
     end
     if (MaxDps:CheckSpellUsable(classtable.SpiritwalkersGrace, 'SpiritwalkersGrace')) and cooldown[classtable.SpiritwalkersGrace].ready then
         MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, cooldown[classtable.SpiritwalkersGrace].ready)
@@ -176,7 +178,8 @@ function Enhancement:single()
 end
 function Enhancement:ae()
     if (MaxDps:CheckSpellUsable(classtable.FireElementalTotem, 'FireElementalTotem')) and ((not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up) and ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up or ttd <= 60 + 10 or ( (talents[classtable.ElementalMastery] and true or false) and ( cooldown[classtable.ElementalMastery].remains == 0 or cooldown[classtable.ElementalMastery].remains >80 ) or timeInCombat >= 60 ) )) and cooldown[classtable.FireElementalTotem].ready then
-        if not setSpell then setSpell = classtable.FireElementalTotem end
+        --if not setSpell then setSpell = classtable.FireElementalTotem end
+        MaxDps:GlowCooldown(classtable.FireElementalTotem, true)
     end
     if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >5 and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
@@ -225,6 +228,8 @@ local function ClearCDs()
     MaxDps:GlowCooldown(classtable.SpiritwalkersGrace, false)
     MaxDps:GlowCooldown(classtable.LightningShield, false)
     MaxDps:GlowCooldown(classtable.WaterShield, false)
+    MaxDps:GlowCooldown(classtable.FireElementalTotem, false)
+    MaxDps:GlowCooldown(classtable.EarthElementalTotem, false)
 end
 
 function Enhancement:callaction()
