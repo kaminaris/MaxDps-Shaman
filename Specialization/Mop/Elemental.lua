@@ -147,7 +147,7 @@ function Elemental:single()
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoById(classtable.EarthElementalTotem).up) and cooldown[classtable.EarthElementalTotem].ready then
         --if not setSpell then setSpell = classtable.EarthElementalTotem end
-        MaxDps:GlowCooldown(classtable.EarthElementalTotem, false)
+        MaxDps:GlowCooldown(classtable.EarthElementalTotem, true)
     end
     if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
