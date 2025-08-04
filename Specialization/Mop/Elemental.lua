@@ -127,8 +127,11 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.AncestralSwiftness, 'AncestralSwiftness') and talents[classtable.AncestralSwiftness]) and ((talents[classtable.AncestralSwiftness] and true or false) and not buff[classtable.AscendanceBuff].up) and cooldown[classtable.AncestralSwiftness].ready then
         MaxDps:GlowCooldown(classtable.AncestralSwiftness, cooldown[classtable.AncestralSwiftness].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and ((talents[classtable.UnleashedFury] and true or false) and not buff[classtable.AscendanceBuff].up) and cooldown[classtable.UnleashElements].ready then
+    if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and ((talents[classtable.UnleashedFury] and true or false) and not buff[classtable.AscendanceBuff].up and debuff[classtable.FlameShockDeBuff].remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 or 0) + 2 and cooldown[classtable.LavaBurst].ready) and cooldown[classtable.UnleashElements].ready then
         if not setSpell then setSpell = classtable.UnleashElements end
+    end
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (buff[classtable.UnleashFlameBuff].up) and cooldown[classtable.LavaBurst].ready then
+        if not setSpell then setSpell = classtable.LavaBurst end
     end
     if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not buff[classtable.AscendanceBuff].up and ( not debuff[classtable.FlameShockDeBuff].up or debuff[classtable.FlameShockDeBuff].remains <2 or ( ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up ) and debuff[classtable.FlameShockDeBuff].remains <3 ) )) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
@@ -269,6 +272,7 @@ function Shaman:Elemental()
     classtable.BerserkingBuff = 20554
     classtable.AscendanceBuff = 114050
     classtable.ElementalMasteryBuff = 16166
+    classtable.UnleashFlameBuff = 73683
     classtable.FlameShockDeBuff = 8050
 
     --if MaxDps.db.global.debugMode then
