@@ -34,4 +34,5 @@ Specialization\Cata\Enhancement.lua
 #@version-mists@
 Specialization\Mop\Elemental.lua
 Specialization\Mop\Enhancement.lua
+Specialization\Mop\Restoration.lua
 #@end-version-mists@
