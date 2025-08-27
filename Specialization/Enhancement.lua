@@ -204,7 +204,7 @@ function Enhancement:aoe()
     if (MaxDps:CheckSpellUsable(classtable.Ascendance, 'Ascendance') and talents[classtable.Ascendance]) and ((debuff[classtable.FlameShockDeBuff].up or not (talents[classtable.MoltenAssault] and true or false)) and talents[classtable.ThorimsInvocation]) and cooldown[classtable.Ascendance].ready then
         MaxDps:GlowCooldown(classtable.Ascendance, cooldown[classtable.Ascendance].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 9 and not buff[classtable.AscendanceBuff].up and (cooldown[classtable.PrimordialWave].remains >15 or buff[classtable.TempestBuff].maxStacks)) and cooldown[classtable.Tempest].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 9 and not buff[classtable.AscendanceBuff].up and (cooldown[classtable.PrimordialWave].remains >15 or (buff[classtable.TempestBuff].count == 1))) and cooldown[classtable.Tempest].ready then
         if not setSpell then setSpell = classtable.Tempest end
     end
     if (MaxDps:CheckSpellUsable(classtable.Windstrike, 'Windstrike')) and ((talents[classtable.ThorimsInvocation] and true or false) and buff[classtable.MaelstromWeaponBuff].count >= 10 and talents[classtable.ThorimsInvocation] and buff[classtable.TempestBuff].up) and cooldown[classtable.Windstrike].ready then
@@ -234,7 +234,7 @@ function Enhancement:aoe()
     if (MaxDps:CheckSpellUsable(classtable.Windstrike, 'Windstrike')) and ((talents[classtable.ThorimsInvocation] and true or false) and buff[classtable.MaelstromWeaponBuff].count >0 and talents[classtable.ThorimsInvocation]) and cooldown[classtable.Windstrike].ready then
         if not setSpell then setSpell = classtable.Windstrike end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and ((buff[classtable.TempestBuff].up and tww3_procs_to_asc <= 1) or (buff[classtable.TempestBuff].maxStacks and cooldown[classtable.Ascendance].remains <= 2 and (talents[classtable.Ascendance] and true or false)))) and cooldown[classtable.Tempest].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and ((buff[classtable.TempestBuff].up and MaxDps.tww3_procs_to_asc <= 1) or ((buff[classtable.TempestBuff].count == 1) and cooldown[classtable.Ascendance].remains <= 2 and (talents[classtable.Ascendance] and true or false)))) and cooldown[classtable.Tempest].ready then
         if not setSpell then setSpell = classtable.Tempest end
     end
     if (MaxDps:CheckSpellUsable(classtable.CrashLightning, 'CrashLightning')) and ((talents[classtable.ConvergingStorms] and true or false) and (talents[classtable.AlphaWolf] and true or false)) and cooldown[classtable.CrashLightning].ready then
@@ -766,7 +766,7 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.Ascendance, 'Ascendance') and talents[classtable.Ascendance]) and ((debuff[classtable.FlameShockDeBuff].up or not (talents[classtable.PrimordialWave] and true or false) or not (talents[classtable.AshenCatalyst] and true or false))) and cooldown[classtable.Ascendance].ready then
         MaxDps:GlowCooldown(classtable.Ascendance, cooldown[classtable.Ascendance].ready)
     end
-    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 9 and (buff[classtable.TempestBuff].count == buff[classtable.TempestBuff].maxStacks and (C_Spell.GetSpellCastCount(classtable.Tempest) >30 or buff[classtable.AwakeningStormsBuff].count == 3))) and cooldown[classtable.Tempest].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 9 and (buff[classtable.TempestBuff].count == (buff[classtable.TempestBuff].count == 1) and (C_Spell.GetSpellCastCount(classtable.Tempest) >30 or buff[classtable.AwakeningStormsBuff].count == 3))) and cooldown[classtable.Tempest].ready then
         if not setSpell then setSpell = classtable.Tempest end
     end
     if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast')) and (((not (talents[classtable.OverflowingMaelstrom] and true or false) and buff[classtable.MaelstromWeaponBuff].count >= 5) or (buff[classtable.MaelstromWeaponBuff].count >= 9))) and cooldown[classtable.ElementalBlast].ready then
