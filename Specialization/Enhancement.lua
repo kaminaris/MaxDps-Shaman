@@ -182,10 +182,10 @@ function Enhancement:precombat()
     end
     trinket1_is_weird = MaxDps:CheckTrinketNames('AlgetharPuzzleBox') or MaxDps:CheckTrinketNames('ManicGrieftorch') or MaxDps:CheckTrinketNames('ElementiumPocketAnvil') or MaxDps:CheckTrinketNames('BeaconTotheBeyond')
     trinket2_is_weird = MaxDps:CheckTrinketNames('AlgetharPuzzleBox') or MaxDps:CheckTrinketNames('ManicGrieftorch') or MaxDps:CheckTrinketNames('ElementiumPocketAnvil') or MaxDps:CheckTrinketNames('BeaconTotheBeyond')
-    min_talented_cd_remains = math.min((cooldown[classtable.FeralSpirit].remains % (4 * (talents[classtable.WitchDoctorsAncestry] and talents[classtable.WitchDoctorsAncestry] or 1))) + 1000 * (talents[classtable.FeralSpirit] and 0 or 1), cooldown[classtable.DoomWinds].remains + 1000 * (talents[classtable.DoomWinds] and 0 or 1), cooldown[classtable.Ascendance].remains + 1000 * (talents[classtable.Ascendance] and 0 or 1))
+    min_talented_cd_remains = math.min(((cooldown[classtable.FeralSpirit].remains%(4 * (talents[classtable.WitchDoctorsAncestry] and talents[classtable.WitchDoctorsAncestry] or 1)))+1000 * (talents[classtable.FeralSpirit] and 0 or 1)) , (cooldown[classtable.DoomWinds].remains + 1000*(talents[classtable.DoomWinds] and 0 or 1)) , (cooldown[classtable.Ascendance].remains + 1000*(talents[classtable.Ascendance] and 0 or 1)))
     target_nature_mod = (1 + debuff[classtable.ChaosBrandDeBuff].upMath*debuff[classtable.ChaosBrandDeBuff].value)*(1+((debuff[classtable.HuntersMarkDeBuff].upMath * targethealthPerc>=80) and 1 or 0)*debuff[classtable.HuntersMarkDeBuff].value)
     expected_lb_funnel = 450000*(1 + debuff[classtable.LightningRodDeBuff].upMath*target_nature_mod*(1 + buff[classtable.PrimordialWaveBuff].upMath*MaxDps:DebuffCounter(classtable.FlameShockDeBuff) * buff[classtable.PrimordialWaveBuff].value)*debuff[classtable.LightningRodDeBuff].value)
-    expected_cl_funnel = 250000*(1 + debuff[classtable.LightningRodDeBuff].upMath*target_nature_mod*(targets >max(3 + 2*(talents[classtable.CrashingStorms] and talents[classtable.CrashingStorms] or 0)) and 1 or 0)*debuff[classtable.LightningRodDeBuff].value)
+    expected_cl_funnel = 250000*(1 + debuff[classtable.LightningRodDeBuff].upMath*target_nature_mod*math.max(targets , (3 + 2*(talents[classtable.CrashingStorms] and talents[classtable.CrashingStorms] or 0)))*debuff[classtable.LightningRodDeBuff].value)
     flame_shock_saturated = ((MaxDps:DebuffCounter(classtable.FlameShockDeBuff) >= targets) or (MaxDps:DebuffCounter(classtable.FlameShockDeBuff) == 6))
 end
 function Enhancement:aoe()
@@ -1061,13 +1061,13 @@ function Enhancement:callaction()
     if (MaxDps:CheckSpellUsable(classtable.WindShear, 'WindShear')) and cooldown[classtable.WindShear].ready then
         MaxDps:GlowCooldown(classtable.WindShear, ( select(8,UnitCastingInfo('target')) ~= nil and not select(8,UnitCastingInfo('target')) or select(7,UnitChannelInfo('target')) ~= nil and not select(7,UnitChannelInfo('target'))) )
     end
-    if (MaxDps:CheckSpellUsable(classtable.LightningLasso, 'LightningLasso')) and (not MaxDps:boss() and debuff[classtable.CastingDeBuff].up and (not select(8,UnitCastingInfo('target')) and 1 or 0) == 0 and debuff[classtable.CastingDeBuff].remains >gcd and debuff[classtable.CastingDeBuff].remains <gcd+gcd) and cooldown[classtable.LightningLasso].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LightningLasso, 'LightningLasso')) and (not MaxDps:boss() and debuff[classtable.CastingDeBuff].up and (not select(8,UnitCastingInfo('target')) and 1 or 0) == 0 and debuff[classtable.CastingDeBuff].remains >MaxDps:CooldownConsolidated(61304).remains and debuff[classtable.CastingDeBuff].remains <MaxDps:CooldownConsolidated(61304).remains+gcd) and cooldown[classtable.LightningLasso].ready then
         if not setSpell then setSpell = classtable.LightningLasso end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and ((talents[classtable.Thundershock] and true or false) and not MaxDps:boss() and debuff[classtable.CastingDeBuff].up and (not select(8,UnitCastingInfo('target')) and 1 or 0) == 0 and debuff[classtable.CastingDeBuff].remains >gcd and debuff[classtable.CastingDeBuff].remains <gcd+gcd) and cooldown[classtable.Thunderstorm].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Thunderstorm, 'Thunderstorm')) and ((talents[classtable.Thundershock] and true or false) and not MaxDps:boss() and debuff[classtable.CastingDeBuff].up and (not select(8,UnitCastingInfo('target')) and 1 or 0) == 0 and debuff[classtable.CastingDeBuff].remains >MaxDps:CooldownConsolidated(61304).remains and debuff[classtable.CastingDeBuff].remains <MaxDps:CooldownConsolidated(61304).remains+gcd) and cooldown[classtable.Thunderstorm].ready then
         if not setSpell then setSpell = classtable.Thunderstorm end
     end
-    if (MaxDps:CheckSpellUsable(classtable.CapacitorTotem, 'CapacitorTotem')) and (not MaxDps:boss() and debuff[classtable.CastingDeBuff].up and (not select(8,UnitCastingInfo('target')) and 1 or 0) == 0 and debuff[classtable.CastingDeBuff].remains >gcd and debuff[classtable.CastingDeBuff].remains <gcd+gcd) and cooldown[classtable.CapacitorTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.CapacitorTotem, 'CapacitorTotem')) and (not MaxDps:boss() and debuff[classtable.CastingDeBuff].up and (not select(8,UnitCastingInfo('target')) and 1 or 0) == 0 and debuff[classtable.CastingDeBuff].remains >MaxDps:CooldownConsolidated(61304).remains and debuff[classtable.CastingDeBuff].remains <MaxDps:CooldownConsolidated(61304).remains+gcd) and cooldown[classtable.CapacitorTotem].ready then
         if not setSpell then setSpell = classtable.CapacitorTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.Purge, 'Purge')) and (buff[classtable.DispellableMagicBuff].up) and cooldown[classtable.Purge].ready then
