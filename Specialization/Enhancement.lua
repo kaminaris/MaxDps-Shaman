@@ -234,7 +234,7 @@ function Enhancement:aoe()
     if (MaxDps:CheckSpellUsable(classtable.Windstrike, 'Windstrike')) and ((talents[classtable.ThorimsInvocation] and true or false) and buff[classtable.MaelstromWeaponBuff].count >0 and talents[classtable.ThorimsInvocation]) and cooldown[classtable.Windstrike].ready then
         if not setSpell then setSpell = classtable.Windstrike end
     end
-    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and ((buff[classtable.TempestBuff].up and MaxDps.tww3_procs_to_asc <= 1) or ((buff[classtable.TempestBuff].count == 1) and cooldown[classtable.Ascendance].remains <= 2 and (talents[classtable.Ascendance] and true or false)))) and cooldown[classtable.Tempest].ready then
+    if (MaxDps:CheckSpellUsable(classtable.Tempest, 'Tempest')) and (buff[classtable.MaelstromWeaponBuff].count >= 5 and ((buff[classtable.TempestBuff].up and MaxDps.tww3_procs_to_asc() <= 1) or ((buff[classtable.TempestBuff].count == 1) and cooldown[classtable.Ascendance].remains <= 2 and (talents[classtable.Ascendance] and true or false)))) and cooldown[classtable.Tempest].ready then
         if not setSpell then setSpell = classtable.Tempest end
     end
     if (MaxDps:CheckSpellUsable(classtable.CrashLightning, 'CrashLightning')) and ((talents[classtable.ConvergingStorms] and true or false) and (talents[classtable.AlphaWolf] and true or false)) and cooldown[classtable.CrashLightning].ready then
