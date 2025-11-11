@@ -27,8 +27,8 @@ Specialization\Cata\Enhancement.lua
 #@end-version-cata@
 
 #@version-classic@
-Specialization\Cata\Elemental.lua
-Specialization\Cata\Enhancement.lua
+Specialization\Classic\Elemental.lua
+Specialization\Classic\Enhancement.lua
 #@end-version-classic@
 
 #@version-mists@
