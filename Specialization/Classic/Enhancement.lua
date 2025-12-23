@@ -68,16 +68,16 @@ local ManaPerc
 local Enhancement = {}
 
 function Enhancement:precombat()
-    if (MaxDps:CheckSpellUsable(classtable.StrengthofEarthTotem, 'StrengthofEarthTotem')) and cooldown[classtable.StrengthofEarthTotem].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.StrengthofEarthTotem, 'StrengthofEarthTotem')) and (not MaxDps:FindBuffAuraData ( 10442 ) .up) and cooldown[classtable.StrengthofEarthTotem].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.StrengthofEarthTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.WindfuryTotem, 'WindfuryTotem')) and cooldown[classtable.WindfuryTotem].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.WindfuryTotem, 'WindfuryTotem')) and (not MaxDps:FindBuffAuraData ( 10611 ) .up) and cooldown[classtable.WindfuryTotem].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.WindfuryTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.GraceofAirTotem, 'GraceofAirTotem')) and cooldown[classtable.GraceofAirTotem].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.GraceofAirTotem, 'GraceofAirTotem')) and (not MaxDps:FindBuffAuraData ( 10611 ) .up) and (not MaxDps:FindBuffAuraData ( 10627 ) .up) and cooldown[classtable.GraceofAirTotem].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.GraceofAirTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and cooldown[classtable.SearingTotem].ready and not UnitAffectingCombat('player') then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not MaxDps:FindBuffAuraData ( 10438 ) .up) and cooldown[classtable.SearingTotem].ready and not UnitAffectingCombat('player') then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
 end
@@ -88,13 +88,13 @@ function Enhancement:priorityList()
     if (MaxDps:CheckSpellUsable(classtable.WindfuryTotem, 'WindfuryTotem')) and (MaxDps:FindBuffAuraData ( 10611 ) .remains <= 1.5) and cooldown[classtable.WindfuryTotem].ready then
         if not setSpell then setSpell = classtable.WindfuryTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.GraceofAirTotem, 'GraceofAirTotem')) and (not MaxDps:FindBuffAuraData ( 10627 ) .up) and cooldown[classtable.GraceofAirTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.GraceofAirTotem, 'GraceofAirTotem')) and (not MaxDps:FindBuffAuraData ( 10611 ) .up) and (not MaxDps:FindBuffAuraData ( 10627 ) .up) and cooldown[classtable.GraceofAirTotem].ready then
         if not setSpell then setSpell = classtable.GraceofAirTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.Stormstrike, 'Stormstrike')) and cooldown[classtable.Stormstrike].ready then
         if not setSpell then setSpell = classtable.Stormstrike end
     end
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not MaxDps:FindDeBuffAuraData ( 10438 ) .up and ttd >= 20) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (not MaxDps:FindBuffAuraData ( 10438 ) .up and ttd >= 20) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (ManaPerc >= 50) and cooldown[classtable.EarthShock].ready then
