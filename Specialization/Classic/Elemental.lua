@@ -73,13 +73,13 @@ function Elemental:precombat()
     end
 end
 function Elemental:priorityList()
-    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets == 1 and not MaxDps:FindDeBuffAuraData ( 10438 ) .up) and cooldown[classtable.SearingTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 1 and not MaxDps:FindBuffAuraData ( 10438 ) .up and ttd >= 20) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >= 2 and not MaxDps:FindDeBuffAuraData ( 10587 ) .up) and cooldown[classtable.MagmaTotem].ready then
+    if (MaxDps:CheckSpellUsable(classtable.MagmaTotem, 'MagmaTotem')) and (targets >= 2 and not MaxDps:FindBuffAuraData ( 10587 ) .up) and cooldown[classtable.MagmaTotem].ready then
         if not setSpell then setSpell = classtable.MagmaTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and cooldown[classtable.ChainLightning].ready then
+    if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >= 2) and cooldown[classtable.ChainLightning].ready then
         if not setSpell then setSpell = classtable.ChainLightning end
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (MaxDps:FindBuffAuraData ( 16166 ) .up) and cooldown[classtable.EarthShock].ready then
