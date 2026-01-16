@@ -64,6 +64,7 @@ local Mana
 local ManaMax
 local ManaDeficit
 local ManaPerc
+local speed, runSpeed, flightSpeed = 0, 0, 0
 local hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID
 
 local Enhancement = {}
@@ -143,6 +144,7 @@ function Shaman:Enhancement()
     MaelstromMax = UnitPowerMax('player', MaelstromPT)
     MaelstromDeficit = MaelstromMax - Maelstrom
     ManaPerc = (Mana / ManaMax) * 100
+    speed, runSpeed, flightSpeed = GetUnitSpeed("player")
     hasMainHandEnchant, mainHandExpiration, mainHandCharges, mainHandEnchantID, hasOffHandEnchant, offHandExpiration, offHandCharges, offHandEnchantID = GetWeaponEnchantInfo()
 
     classtable.FireNovaTotem = 29077
