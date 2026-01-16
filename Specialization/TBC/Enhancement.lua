@@ -151,6 +151,7 @@ function Shaman:Enhancement()
     classtable.FlameShock = 25457
     classtable.Stormstrike = 17364
     classtable.EarthShock = 25454
+    classtable.WindfuryWeapon = 8232
 
     setSpell = nil
     ClearCDs()
