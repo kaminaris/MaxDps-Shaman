@@ -29,6 +29,7 @@ Specialization\Cata\Enhancement.lua
 #@version-bcc@
 Specialization\TBC\Elemental.lua
 Specialization\TBC\Enhancement.lua
+Specialization\TBC\Restoration.lua
 #@end-version-bcc@
 
 #@version-classic@
