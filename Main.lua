@@ -46,35 +46,37 @@ function Shaman:TotemMastery(totem)
     return 0
 end
 
-local spellTracker = CreateFrame("Frame")
-spellTracker:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
-spellTracker:RegisterEvent("CHALLENGE_MODE_START")
-spellTracker:RegisterEvent("ENCOUNTER_START")
-spellTracker:RegisterEvent("PLAYER_DEAD")
-spellTracker:RegisterEvent("TRAIT_CONFIG_UPDATED")
-
-MaxDps.TWW3ProcsToAsc = 8
-MaxDps.tww3_procs_to_asc = function ()
-    return MaxDps.TWW3ProcsToAsc
-end
-
-spellTracker:SetScript("OnEvent", function(self, event)
-    if event == "CHALLENGE_MODE_START" or event == "ENCOUNTER_START" or event == "PLAYER_DEAD" or event == "TRAIT_CONFIG_UPDATED" then
-        MaxDps.TWW3ProcsToAsc = 8
+if not MaxDps:IsRetailWow() then
+    local spellTracker = CreateFrame("Frame")
+    spellTracker:RegisterEvent("COMBAT_LOG_EVENT_UNFILTERED")
+    spellTracker:RegisterEvent("CHALLENGE_MODE_START")
+    spellTracker:RegisterEvent("ENCOUNTER_START")
+    spellTracker:RegisterEvent("PLAYER_DEAD")
+    spellTracker:RegisterEvent("TRAIT_CONFIG_UPDATED")
+    
+    MaxDps.TWW3ProcsToAsc = 8
+    MaxDps.tww3_procs_to_asc = function ()
+        return MaxDps.TWW3ProcsToAsc
     end
-    if event == "COMBAT_LOG_EVENT_UNFILTERED" then
-        if not MaxDps.tier or not MaxDps.tier[34].count then return end
-        local subtype = select(2, CombatLogGetCurrentEventInfo())
-        --timestamp, subEvent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId
-        local _, _, _, sourceGUID, _, _, _, _, _, _, _, spellId = CombatLogGetCurrentEventInfo()
-        if sourceGUID ~= UnitGUID("player") then return end
-        if spellId == 462131 and MaxDps.tier[34].count >= 2 then
-            if subtype == "SPELL_AURA_APPLIED" or subtype == "SPELL_AURA_APPLIED_DOSE" then
-                MaxDps.TWW3ProcsToAsc = MaxDps.TWW3ProcsToAsc - 1
-                if MaxDps.TWW3ProcsToAsc <= 0 then
-                    MaxDps.TWW3ProcsToAsc = 8
+    
+    spellTracker:SetScript("OnEvent", function(self, event)
+        if event == "CHALLENGE_MODE_START" or event == "ENCOUNTER_START" or event == "PLAYER_DEAD" or event == "TRAIT_CONFIG_UPDATED" then
+            MaxDps.TWW3ProcsToAsc = 8
+        end
+        if event == "COMBAT_LOG_EVENT_UNFILTERED" then
+            if not MaxDps.tier or not MaxDps.tier[34].count then return end
+            local subtype = select(2, CombatLogGetCurrentEventInfo())
+            --timestamp, subEvent, _, sourceGUID, _, _, _, destGUID, _, _, _, spellId
+            local _, _, _, sourceGUID, _, _, _, _, _, _, _, spellId = CombatLogGetCurrentEventInfo()
+            if sourceGUID ~= UnitGUID("player") then return end
+            if spellId == 462131 and MaxDps.tier[34].count >= 2 then
+                if subtype == "SPELL_AURA_APPLIED" or subtype == "SPELL_AURA_APPLIED_DOSE" then
+                    MaxDps.TWW3ProcsToAsc = MaxDps.TWW3ProcsToAsc - 1
+                    if MaxDps.TWW3ProcsToAsc <= 0 then
+                        MaxDps.TWW3ProcsToAsc = 8
+                    end
                 end
             end
         end
-    end
-end)
+    end)
+end
