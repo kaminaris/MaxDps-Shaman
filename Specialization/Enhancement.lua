@@ -47,5 +47,6 @@ function Shaman:Enhancement()
             --    end
             end
         end
+        MaxDps:GlowCooldownMidnight(384352, true)
     end
 end
