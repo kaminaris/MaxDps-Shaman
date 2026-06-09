@@ -133,10 +133,10 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (buff[classtable.UnleashFlameBuff].up) and cooldown[classtable.LavaBurst].ready then
         if not setSpell then setSpell = classtable.LavaBurst end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not buff[classtable.AscendanceBuff].up and ( not debuff[classtable.FlameShockDeBuff].up or debuff[classtable.FlameShockDeBuff].remains <2 or ( ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up ) and debuff[classtable.FlameShockDeBuff].remains <3 ) )) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not buff[classtable.AscendanceBuff].up and ( not MaxDps:FindDeBuffAuraData(classtable.FlameShock).up or MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains <2 or ( ( MaxDps:Bloodlust(1) or buff[classtable.ElementalMasteryBuff].up ) and MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains <3 ) )) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (debuff[classtable.FlameShockDeBuff].remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 or 0) and ( buff[classtable.AscendanceBuff].up or cooldown[classtable.LavaBurst].ready )) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 or 0) and ( buff[classtable.AscendanceBuff].up or cooldown[classtable.LavaBurst].ready )) and cooldown[classtable.LavaBurst].ready then
         if not setSpell then setSpell = classtable.LavaBurst end
     end
     if (MaxDps:CheckSpellUsable(classtable.ElementalBlast, 'ElementalBlast') and talents[classtable.ElementalBlast]) and ((talents[classtable.ElementalBlast] and true or false) and not buff[classtable.AscendanceBuff].up) and cooldown[classtable.ElementalBlast].ready then
@@ -145,7 +145,7 @@ function Elemental:single()
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >= 6) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >3 and debuff[classtable.FlameShockDeBuff].remains >cooldown[classtable.EarthShock].remains and debuff[classtable.FlameShockDeBuff].remains <cooldown[classtable.EarthShock].remains + 1) and cooldown[classtable.EarthShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and (buff[classtable.LightningShieldBuff].count >3 and MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains >cooldown[classtable.EarthShock].remains and MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains <cooldown[classtable.EarthShock].remains + 1) and cooldown[classtable.EarthShock].ready then
         if not setSpell then setSpell = classtable.EarthShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthElementalTotem, 'EarthElementalTotem')) and (not GetTotemInfoById(classtable.EarthElementalTotem).up) and cooldown[classtable.EarthElementalTotem].ready then
@@ -172,10 +172,10 @@ function Elemental:ae()
     if (MaxDps:CheckSpellUsable(classtable.SearingTotem, 'SearingTotem')) and (targets <= 2 and not GetTotemInfoById(classtable.SearingTotem).up and not GetTotemInfoById(classtable.MagmaTotem).up and not GetTotemInfoById(classtable.FireElementalTotem).up) and cooldown[classtable.SearingTotem].ready then
         if not setSpell then setSpell = classtable.SearingTotem end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up and targets <3) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not MaxDps:FindDeBuffAuraData(classtable.FlameShock).up and targets <3) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (targets <3 and debuff[classtable.FlameShockDeBuff].remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 or 0) and cooldown[classtable.LavaBurst].ready) and cooldown[classtable.LavaBurst].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaBurst, 'LavaBurst')) and (targets <3 and MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains >( classtable and classtable.LavaBurst and GetSpellInfo(classtable.LavaBurst).castTime /1000 or 0) and cooldown[classtable.LavaBurst].ready) and cooldown[classtable.LavaBurst].ready then
         if not setSpell then setSpell = classtable.LavaBurst end
     end
     if (MaxDps:CheckSpellUsable(classtable.Earthquake, 'Earthquake')) and (targets >4) and cooldown[classtable.Earthquake].ready then

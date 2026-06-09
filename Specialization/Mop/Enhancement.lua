@@ -135,7 +135,7 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.MaelstromWeaponBuff].up == 5 or ( (MaxDps.tier and MaxDps.tier[13].count >= 4 and 1 or 0) == 1 and buff[classtable.MaelstromWeaponBuff].count >= 4 and ( UnitExists('pet') and UnitName('pet')  == 'SpiritWolf' ) )) and cooldown[classtable.LightningBolt].ready then
         if not setSpell then setSpell = classtable.LightningBolt end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (buff[classtable.UnleashFlameBuff].up and not debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (buff[classtable.UnleashFlameBuff].up and not MaxDps:FindDeBuffAuraData(classtable.FlameShock).up) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.Stormstrike, 'Stormstrike')) and cooldown[classtable.Stormstrike].ready then
@@ -156,7 +156,7 @@ function Enhancement:single()
     if (MaxDps:CheckSpellUsable(classtable.LightningBolt, 'LightningBolt')) and (buff[classtable.AncestralSwiftnessBuff].up) and cooldown[classtable.LightningBolt].ready then
         if not setSpell then setSpell = classtable.LightningBolt end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (buff[classtable.UnleashFlameBuff].up and debuff[classtable.FlameShockDeBuff].remains <= 3) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (buff[classtable.UnleashFlameBuff].up and MaxDps:FindDeBuffAuraData(classtable.FlameShock).remains <= 3) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.EarthShock, 'EarthShock')) and cooldown[classtable.EarthShock].ready then
@@ -190,7 +190,7 @@ function Enhancement:ae()
     if (MaxDps:CheckSpellUsable(classtable.FireNova, 'FireNova')) and (( targets <= 5 and MaxDps:DebuffCounter(classtable.FlameShock) == targets ) or MaxDps:DebuffCounter(classtable.FlameShock) >= 5) and cooldown[classtable.FireNova].ready then
         if not setSpell then setSpell = classtable.FireNova end
     end
-    if (MaxDps:CheckSpellUsable(classtable.LavaLash, 'LavaLash')) and (debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.LavaLash].ready then
+    if (MaxDps:CheckSpellUsable(classtable.LavaLash, 'LavaLash')) and (MaxDps:FindDeBuffAuraData(classtable.FlameShock).up) and cooldown[classtable.LavaLash].ready then
         if not setSpell then setSpell = classtable.LavaLash end
     end
     if (MaxDps:CheckSpellUsable(classtable.ChainLightning, 'ChainLightning')) and (targets >2 and buff[classtable.MaelstromWeaponBuff].count >= 3) and cooldown[classtable.ChainLightning].ready then
@@ -199,7 +199,7 @@ function Enhancement:ae()
     if (MaxDps:CheckSpellUsable(classtable.UnleashElements, 'UnleashElements')) and cooldown[classtable.UnleashElements].ready then
         if not setSpell then setSpell = classtable.UnleashElements end
     end
-    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not debuff[classtable.FlameShockDeBuff].up) and cooldown[classtable.FlameShock].ready then
+    if (MaxDps:CheckSpellUsable(classtable.FlameShock, 'FlameShock')) and (not MaxDps:FindDeBuffAuraData(classtable.FlameShock).up) and cooldown[classtable.FlameShock].ready then
         if not setSpell then setSpell = classtable.FlameShock end
     end
     if (MaxDps:CheckSpellUsable(classtable.Stormstrike, 'Stormstrike')) and cooldown[classtable.Stormstrike].ready then
