@@ -1,0 +1,24 @@
+local _, addonTable = ...
+local Shaman = addonTable.Shaman
+local MaxDps = _G.MaxDps
+if not MaxDps then return end
+
+local Elemental = {}
+
+function Shaman:Elemental()
+    if MaxDps:SmartAoe() <= 1 then
+        if not MaxDps.IsTrackedAuraActive(3599) then return 3599 end --  Searing Totem
+        if not MaxDps.IsTrackedAuraActive(8050) then return 8050 end --  Flame Shock
+        if not MaxDps.IsSpellOnCooldown(408490, true) then return 408490 end --  Lava Burst
+        if not MaxDps.IsSpellOnCooldown(421, true) then return 421 end --  Chain Lightning
+        if not MaxDps.IsSpellOnCooldown(403, true) then return 403 end --  Lightning Bolt
+    end
+
+    if MaxDps:SmartAoe() >= 2 then
+        if not MaxDps.IsTrackedAuraActive(8190) then return 8190 end --  Magma Totem
+        if not MaxDps.IsTrackedAuraActive(8050) then return 8050 end --  Flame Shock
+        if not MaxDps.IsSpellOnCooldown(408490, true) then return 408490 end --  Lava Burst
+        if not MaxDps.IsSpellOnCooldown(421, true) then return 421 end --  Chain Lightning
+        if not MaxDps.IsSpellOnCooldown(403, true) then return 403 end --  Lightning Bolt
+    end
+end

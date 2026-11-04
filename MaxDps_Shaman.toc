@@ -1,4 +1,4 @@
-## Title: MaxDps_Shaman
+﻿## Title: MaxDps_Shaman
 ## Version: @project-version@
 ## Author: Kaminaris
 ## Interface: 120105
@@ -16,30 +16,24 @@
 ## X-Wago-ID: aNevwk62
 
 Main.lua
-#@retail@
-Specialization\Elemental.lua
-Specialization\Enhancement.lua
-Specialization\Restoration.lua
-#@end-retail@
+Specialization\Elemental.lua [AllowLoadGameType standard]
+Specialization\Enhancement.lua [AllowLoadGameType standard]
+Specialization\Restoration.lua [AllowLoadGameType standard]
 
-#@version-cata@
-Specialization\Cata\Elemental.lua
-Specialization\Cata\Enhancement.lua
-#@end-version-cata@
+Specialization\Cata\Elemental.lua [AllowLoadGameType cata]
+Specialization\Cata\Enhancement.lua [AllowLoadGameType cata]
 
-#@version-bcc@
-Specialization\TBC\Elemental.lua
-Specialization\TBC\Enhancement.lua
-Specialization\TBC\Restoration.lua
-#@end-version-bcc@
+Specialization\TBC\Elemental.lua [AllowLoadGameType tbc]
+Specialization\TBC\Enhancement.lua [AllowLoadGameType tbc]
+Specialization\TBC\Restoration.lua [AllowLoadGameType tbc]
 
-#@version-classic@
-Specialization\Classic\Elemental.lua
-Specialization\Classic\Enhancement.lua
-#@end-version-classic@
+Specialization\Classic\Elemental.lua [AllowLoadGameType vanilla]
+Specialization\Classic\Enhancement.lua [AllowLoadGameType vanilla]
 
-#@version-mists@
-Specialization\Mop\Elemental.lua
-Specialization\Mop\Enhancement.lua
-Specialization\Mop\Restoration.lua
-#@end-version-mists@
+Specialization\Mop\Elemental.lua [AllowLoadGameType mists]
+Specialization\Mop\Enhancement.lua [AllowLoadGameType mists]
+Specialization\Mop\Restoration.lua [AllowLoadGameType mists]
+
+Specialization\Forever\Elemental.lua [AllowLoadGameType forever]
+Specialization\Forever\Enhancement.lua [AllowLoadGameType forever]
+Specialization\Forever\Restoration.lua [AllowLoadGameType forever]
